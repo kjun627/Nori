@@ -124,8 +124,14 @@ set(TBB_BUILD_STATIC          ON   CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC       OFF  CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC_PROXY OFF  CACHE BOOL " " FORCE)
 set(TBB_BUILD_TESTS           OFF  CACHE BOOL " " FORCE)
-add_subdirectory(tbb)
-set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
+#add_subdirectory(tbb)
+#set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
+
+
+# TBB is found in the parent CMakeLists.txt
+# Set TBB_INCLUDE_DIR for include_directories in parent scope
+get_target_property(TBB_INCLUDE_DIR TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)
+set(TBB_INCLUDE_DIR ${TBB_INCLUDE_DIR} PARENT_SCOPE)
 
 if (APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION=1")
@@ -171,8 +177,7 @@ set(NANOGUI_INCLUDE_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}/nanogui/include)
 set(EIGEN_INCLUDE_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
-set(TBB_INCLUDE_DIR
-  ${CMAKE_CURRENT_SOURCE_DIR}/tbb/include)
+# TBB_INCLUDE_DIR is set from find_package(TBB) above
 set(FILESYSTEM_INCLUDE_DIR
   ${CMAKE_CURRENT_SOURCE_DIR}/filesystem)
 set(PUGIXML_INCLUDE_DIR

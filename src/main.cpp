@@ -27,7 +27,7 @@
 #include <nori/gui.h>
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
-#include <tbb/task_scheduler_init.h>
+#include <tbb/global_control.h>
 #include <filesystem/resolver.h>
 #include <thread>
 
@@ -88,7 +88,7 @@ static void render(Scene *scene, const std::string &filename) {
 
     /* Do the following in parallel and asynchronously */
     std::thread render_thread([&] {
-        tbb::task_scheduler_init init(threadCount);
+        tbb::global_control gc(tbb::global_control::max_allowed_parallelism, threadCount);
 
         cout << "Rendering .. ";
         cout.flush();
@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
     }
     else { // sceneName != ""
         if (threadCount < 0) {
-            threadCount = tbb::task_scheduler_init::automatic;
+            threadCount = std::thread::hardware_concurrency();
         }
         try {
             std::unique_ptr<NoriObject> root(loadFromXML(sceneName));

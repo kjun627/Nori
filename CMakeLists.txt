@@ -1,6 +1,12 @@
 cmake_minimum_required (VERSION 3.8)
 project(nori)
 
+# Find TBB before adding ext subdirectory (imported targets are directory-scoped)
+find_package(TBB REQUIRED)
+if (TBB_FOUND)
+    message(STATUS "Nori: Found System TBB (Version: ${TBB_VERSION})")
+endif()
+
 add_subdirectory(ext ext_build)
 
 include_directories(
@@ -104,12 +110,12 @@ add_executable(warptest
 )
 
 if (WIN32)
-  target_link_libraries(nori tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS} zlibstatic)
+  target_link_libraries(nori  pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS} zlibstatic)
 else()
-  target_link_libraries(nori tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
+  target_link_libraries(nori  TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 endif()
 
-target_link_libraries(warptest tbb_static nanogui ${NANOGUI_EXTRA_LIBS})
+target_link_libraries(warptest TBB::tbb nanogui ${NANOGUI_EXTRA_LIBS})
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")
