@@ -123,7 +123,14 @@ void Accel::addMesh(Mesh *mesh) {
 
 void Accel::build() {
     /* Nothing to do here for now */
-    
+    std::vector<uint32_t> allTriangles;
+    for(uint32_t i = 0; i< m_mesh->getTriangleCount(); ++i){
+        allTriangles.push_back(i);
+    }
+    int maxDepth = 20;
+    m_root = buildRecursive(m_bbox, allTriangles,m_mesh, 0, maxDepth);
+
+    std::cout << "Octree built" << std::endl;
 }
 
 bool Accel::rayIntersect(const Ray3f &ray_, Intersection &its, bool shadowRay) const {
