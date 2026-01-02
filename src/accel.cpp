@@ -79,18 +79,39 @@ OctreeNode* buildRecursive(const BoundingBox3f& bbox,
     // 임시로 8개의 자식 노드에 담을 삼각형들
     std::vector<uint32_t> childTriangles[8];
 
+    BoundingBox3f childBoxes[8];
+    for (int i = 0; i< 8; ++i){
+        childBoxes[i] = getChildBoundingBox(bbox, i);
+    }
+
     for (uint32_t triIdx: triangles){ // 삼각형을 인덱스로 받아와서
         BoundingBox3f triBBox = mesh->getBoundingBox(triIdx);
         // 삼각형의 바운딩 박스를 만듦.
         for (int i = 0; i < 8; ++i){
             //child box 를 만들고
-            BoundingBox3f childBox = getChildBoundingBox(bbox, i);
+            // BoundingBox3f childBox = getChildBoundingBox(bbox, i);
             
             // 그 차일드 박스랑 삼각형 만든거랑 겹치는지 확인해보고 겹치면 그 자식에게 삼각형 할당해주기.
-            if(childBox.overlaps(triBBox)){
+            if(childBoxes[i].overlaps(triBBox)){
                 childTriangles[i].push_back(triIdx);
             }
         }
+    }
+
+    bool canSplit = false;
+    for (int i = 0; i < 8; ++i) {
+        if (!childTriangles[i].empty() && 
+            childTriangles[i].size() < triangles.size()) {
+            canSplit = true;
+            break;
+        }
+    }
+    
+    if (!canSplit) {
+        // 분할해도 개선 안됨 → 강제 리프
+        OctreeNode* leaf = new OctreeNode();
+        leaf->triangles = triangles;
+        return leaf;
     }
 
     OctreeNode* node = new OctreeNode();
@@ -101,10 +122,10 @@ OctreeNode* buildRecursive(const BoundingBox3f& bbox,
             node->children[i] = nullptr;
         } else {
             // 받을게 있다면 그 바운딩 박스에
-            BoundingBox3f childBox = getChildBoundingBox(bbox, i);
+            // BoundingBox3f childBox = getChildBoundingBox(bbox, i);
             // 그 바운딩 박스에서 더 쪼개질 여지가 있는지 확인.
             node->children[i] = buildRecursive(
-                childBox,
+                childBoxes[i],
                 childTriangles[i],
                 mesh,
                 depth + 1,
@@ -127,7 +148,7 @@ void Accel::build() {
     for(uint32_t i = 0; i< m_mesh->getTriangleCount(); ++i){
         allTriangles.push_back(i);
     }
-    int maxDepth = 20;
+    int maxDepth = 8;
     m_root = buildRecursive(m_bbox, allTriangles,m_mesh, 0, maxDepth);
 
     std::cout << "Octree built" << std::endl;
