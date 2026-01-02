@@ -20,7 +20,100 @@
 #include <Eigen/Geometry>
 
 NORI_NAMESPACE_BEGIN
+BoundingBox3f getChildBoundingBox(const BoundingBox3f& parent, int octant){
+        Point3f center = parent.getCenter();
+        Point3f pMin = parent.min;
+        Point3f pMax = parent.max;
 
+        Point3f chMin, chMax;
+
+        // x 축에 대해서 위치 할당
+        if (octant & 1){
+            chMin.x() = center.x();
+            chMax.x() = pMax.x();
+        }else{
+            chMin.x() = pMin.x();
+            chMax.x() = center.x();
+        }
+
+        // y 축에 대해서 위치 할당
+        if(octant&2){
+            chMin.y() = center.y();
+            chMax.y() = pMax.y();
+        }else{
+            chMin.y() = pMin.y();
+            chMax.y() = center.y();
+        }
+
+        // z 축에 대해서 위치 할당
+        if(octant&4){
+            chMin.z() = center.z();
+            chMax.z() = pMax.z();
+        }else{
+            chMin.z() = pMin.z();
+            chMax.z() = center.z();
+        }
+
+        return BoundingBox3f(chMin, chMax);
+}
+OctreeNode* buildRecursive(const BoundingBox3f& bbox, 
+    const std::vector<uint32_t>& triangles, const Mesh* mesh, uint32_t depth, uint32_t maxDepth){
+    
+    // 삼각혀잉 없으면 종료
+    if(triangles.empty()){
+        return nullptr;
+    }
+
+    // 삼각형이 적으면 리프노드 생성해서 리턴해주기
+    if(triangles.size() < 10){
+        OctreeNode* leaf = new OctreeNode();
+        leaf->triangles = triangles;
+        return leaf;
+    }
+
+    if(depth >= maxDepth){
+        OctreeNode* leaf = new OctreeNode();
+        leaf->triangles = triangles;
+        return leaf;
+    }
+    // 임시로 8개의 자식 노드에 담을 삼각형들
+    std::vector<uint32_t> childTriangles[8];
+
+    for (uint32_t triIdx: triangles){ // 삼각형을 인덱스로 받아와서
+        BoundingBox3f triBBox = mesh->getBoundingBox(triIdx);
+        // 삼각형의 바운딩 박스를 만듦.
+        for (int i = 0; i < 8; ++i){
+            //child box 를 만들고
+            BoundingBox3f childBox = getChildBoundingBox(bbox, i);
+            
+            // 그 차일드 박스랑 삼각형 만든거랑 겹치는지 확인해보고 겹치면 그 자식에게 삼각형 할당해주기.
+            if(childBox.overlaps(triBBox)){
+                childTriangles[i].push_back(triIdx);
+            }
+        }
+    }
+
+    OctreeNode* node = new OctreeNode();
+
+    // 받을 삼각형이 없는 노드는 nullptr로 해주고
+    for(int i = 0; i< 8; i++){
+        if (childTriangles[i].empty()){
+            node->children[i] = nullptr;
+        } else {
+            // 받을게 있다면 그 바운딩 박스에
+            BoundingBox3f childBox = getChildBoundingBox(bbox, i);
+            // 그 바운딩 박스에서 더 쪼개질 여지가 있는지 확인.
+            node->children[i] = buildRecursive(
+                childBox,
+                childTriangles[i],
+                mesh,
+                depth + 1,
+                maxDepth);
+        }
+    }
+
+    return node;
+}
 void Accel::addMesh(Mesh *mesh) {
     if (m_mesh)
         throw NoriException("Accel: only a single mesh is supported!");
@@ -30,6 +123,7 @@ void Accel::addMesh(Mesh *mesh) {
 
 void Accel::build() {
     /* Nothing to do here for now */
+    
 }
 
 bool Accel::rayIntersect(const Ray3f &ray_, Intersection &its, bool shadowRay) const {

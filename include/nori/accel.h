@@ -28,7 +28,15 @@ NORI_NAMESPACE_BEGIN
  * The current implementation falls back to a brute force loop
  * through the geometry.
  */
-class Accel {
+struct OctreeNode{
+    // 한번 분할할 때마다 자식 8개씩 포인터로 바로 할닽할 예정
+    OctreeNode* children[8] = {nullptr};
+    // 데이터를 받아올 예정.
+    std::vector<uint32_t> triangles;
+    // 데이터가 들어있거나 , 분할된 자식이 없다면 리프 노이드인거다.
+    bool isLeaf() const {return triangles.size() > 0 || children[0] == nullptr;}
+};
+ class Accel {
 public:
     /**
      * \brief Register a triangle mesh for inclusion in the acceleration
@@ -68,6 +76,7 @@ public:
 private:
     Mesh         *m_mesh = nullptr; ///< Mesh (only a single one for now)
     BoundingBox3f m_bbox;           ///< Bounding box of the entire scene
+    OctreeNode* m_root = nullptr;
 };
 
 NORI_NAMESPACE_END
