@@ -153,29 +153,71 @@ void Accel::build() {
 
     std::cout << "Octree built" << std::endl;
 }
+bool rayIntersectNode(const OctreeNode* node, const BoundingBox3f& nodeBBox, 
+    Ray3f& ray, Intersection& its,bool shadowRay, bool& foundIntersection, 
+    uint32_t& f, const Mesh* Mesh){
+        // 현재 노드의 바운딩 박스와 Ray intersection 결과가 false 일 때
+        if(!nodeBBox.rayIntersect(ray)){
+            return false; // false 반환
+        }
+        // 노드에 속한 삼각형 순회
+        if(!node->triangles.empty()){
+            for(uint32_t idx:node->triangles){
+                float u, v, t;
+                if (Mesh->rayIntersect(idx, ray, u, v, t)) {
+                    /* An intersection was found! Can terminate
+                    immediately if this is a shadow ray query */
+                    if (shadowRay)
+                        return true;
+                    ray.maxt = its.t = t;
+                    its.uv = Point2f(u, v);
+                    its.mesh = Mesh;
+                    f = idx;
+                    foundIntersection = true;
+                }
+            }
+        }
 
+        // 자식 노드가 더 있으면 그 공간 추적 (depth + 1)
+        for (int i = 0; i<8; i++){
+            if(node->children[i]!= nullptr){
+                BoundingBox3f childBox  = getChildBoundingBox(nodeBBox,i);
+                bool hit = rayIntersectNode(node->children[i],childBox, ray,  its, shadowRay, foundIntersection, f, Mesh);
+                if (hit && shadowRay){
+                    return true;
+                }
+            }
+        }
+
+        return foundIntersection;
+}
 bool Accel::rayIntersect(const Ray3f &ray_, Intersection &its, bool shadowRay) const {
     bool foundIntersection = false;  // Was an intersection found so far?
     uint32_t f = (uint32_t) -1;      // Triangle index of the closest intersection
 
     Ray3f ray(ray_); /// Make a copy of the ray (we will need to update its '.maxt' value)
 
-    /* Brute force search through all triangles */
-    for (uint32_t idx = 0; idx < m_mesh->getTriangleCount(); ++idx) {
-        float u, v, t;
-        if (m_mesh->rayIntersect(idx, ray, u, v, t)) {
-            /* An intersection was found! Can terminate
-               immediately if this is a shadow ray query */
-            if (shadowRay)
-                return true;
-            ray.maxt = its.t = t;
-            its.uv = Point2f(u, v);
-            its.mesh = m_mesh;
-            f = idx;
-            foundIntersection = true;
+    if(!m_root){
+        // 만약에 Octree가 비어있다면 원래의 순회방식대로 진행. (무차별 대입)
+        for (uint32_t idx = 0; idx < m_mesh->getTriangleCount(); ++idx) {
+            float u, v, t;
+            if (m_mesh->rayIntersect(idx, ray, u, v, t)) {
+                /* An intersection was found! Can terminate
+                immediately if this is a shadow ray query */
+                if (shadowRay)
+                    return true;
+                ray.maxt = its.t = t;
+                its.uv = Point2f(u, v);
+                its.mesh = m_mesh;
+                f = idx;
+                foundIntersection = true;
+            }
         }
+    }else{
+        // 옥트리 빌드 된거면 옥트리 순회
+       rayIntersectNode(m_root, m_bbox, ray, its, shadowRay, foundIntersection, f, m_mesh);
     }
-
+        
     if (foundIntersection) {
         /* At this point, we now know that there is an intersection,
            and we know the triangle index of the closest such intersection.
@@ -183,7 +225,7 @@ bool Accel::rayIntersect(const Ray3f &ray_, Intersection &its, bool shadowRay) c
            The following computes a number of additional properties which
            characterize the intersection (normals, texture coordinates, etc..)
         */
-
+        // 찾
         /* Find the barycentric coordinates */
         Vector3f bary;
         bary << 1-its.uv.sum(), its.uv;

@@ -29,7 +29,7 @@ NORI_NAMESPACE_BEGIN
  * through the geometry.
  */
 struct OctreeNode{
-    // 한번 분할할 때마다 자식 8개씩 포인터로 바로 할닽할 예정
+    // 한번 분할할 때마다 자식 8개씩 포인터로 바로 할당할 예정
     OctreeNode* children[8] = {nullptr};
     // 데이터를 받아올 예정.
     std::vector<uint32_t> triangles;
