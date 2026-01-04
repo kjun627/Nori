@@ -18,6 +18,9 @@
 
 #include <nori/accel.h>
 #include <Eigen/Geometry>
+#include <algorithm>
+#include <vector>
+#include <utility>
 
 NORI_NAMESPACE_BEGIN
 BoundingBox3f getChildBoundingBox(const BoundingBox3f& parent, int octant){
@@ -148,7 +151,7 @@ void Accel::build() {
     for(uint32_t i = 0; i< m_mesh->getTriangleCount(); ++i){
         allTriangles.push_back(i);
     }
-    int maxDepth = 8;
+    int maxDepth = 16;
     m_root = buildRecursive(m_bbox, allTriangles,m_mesh, 0, maxDepth);
 
     std::cout << "Octree built" << std::endl;
@@ -177,16 +180,30 @@ bool rayIntersectNode(const OctreeNode* node, const BoundingBox3f& nodeBBox,
                 }
             }
         }
-
+        std::vector<std::pair<int,float>> childrenDist;
         // 자식 노드가 더 있으면 그 공간 추적 (depth + 1)
         for (int i = 0; i<8; i++){
             if(node->children[i]!= nullptr){
                 BoundingBox3f childBox  = getChildBoundingBox(nodeBBox,i);
-                bool hit = rayIntersectNode(node->children[i],childBox, ray,  its, shadowRay, foundIntersection, f, Mesh);
-                if (hit && shadowRay){
-                    return true;
+                float minT, maxT;
+                
+                if(childBox.rayIntersect(ray,minT,maxT)){
+                    childrenDist.push_back({i, minT});
                 }
             }
+        }
+        std::sort(childrenDist.begin(), childrenDist.end(),
+        [](const auto& a, const auto& b){
+            return  a.second < b.second;
+        });
+
+        for (const auto& [childIdx,minT] : childrenDist){
+            if(minT > ray.maxt) break;
+
+            BoundingBox3f childBox = getChildBoundingBox(nodeBBox, childIdx);
+            bool hit = rayIntersectNode(node->children[childIdx], childBox, ray, its, 
+                shadowRay, foundIntersection, f, Mesh);
+            if(hit&&shadowRay) return true;
         }
 
         return foundIntersection;
