@@ -59,6 +59,7 @@ BoundingBox3f getChildBoundingBox(const BoundingBox3f& parent, int octant){
 
         return BoundingBox3f(chMin, chMax);
 }
+
 OctreeNode* buildRecursive(const BoundingBox3f& bbox, 
     const std::vector<uint32_t>& triangles, const Mesh* mesh, uint32_t depth, uint32_t maxDepth){
     
@@ -180,7 +181,9 @@ bool rayIntersectNode(const OctreeNode* node, const BoundingBox3f& nodeBBox,
                 }
             }
         }
-        std::vector<std::pair<int,float>> childrenDist;
+        int childIndices[8];
+        float childDists[8];
+        int count = 0;
         // 자식 노드가 더 있으면 그 공간 추적 (depth + 1)
         for (int i = 0; i<8; i++){
             if(node->children[i]!= nullptr){
@@ -188,20 +191,25 @@ bool rayIntersectNode(const OctreeNode* node, const BoundingBox3f& nodeBBox,
                 float minT, maxT;
                 
                 if(childBox.rayIntersect(ray,minT,maxT)){
-                    childrenDist.push_back({i, minT});
+                    int pos = count;
+                    while(pos > 0 && childDists[pos-1]>minT){
+                        childDists[pos] = childDists[pos - 1];
+                        childIndices[pos] = childIndices[pos - 1];
+                        pos--;
+                    }
+                    childDists[pos] = minT;
+                    childIndices[pos]= i;
+                    count++;
                 }
             }
         }
-        std::sort(childrenDist.begin(), childrenDist.end(),
-        [](const auto& a, const auto& b){
-            return  a.second < b.second;
-        });
+    
 
-        for (const auto& [childIdx,minT] : childrenDist){
-            if(minT > ray.maxt) break;
+        for(int i = 0; i<count; i++){
+            if(childDists[i] > ray.maxt) break;
 
-            BoundingBox3f childBox = getChildBoundingBox(nodeBBox, childIdx);
-            bool hit = rayIntersectNode(node->children[childIdx], childBox, ray, its, 
+            BoundingBox3f childBox = getChildBoundingBox(nodeBBox, childIndices[i]);
+            bool hit = rayIntersectNode(node->children[childIndices[i]], childBox, ray, its, 
                 shadowRay, foundIntersection, f, Mesh);
             if(hit&&shadowRay) return true;
         }

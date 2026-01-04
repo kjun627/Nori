@@ -79,4 +79,5 @@ private:
     OctreeNode* m_root = nullptr;
 };
 
+
 NORI_NAMESPACE_END
