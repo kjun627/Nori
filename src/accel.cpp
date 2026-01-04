@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <vector>
 #include <utility>
+#include <tbb/parallel_for.h>
 
 NORI_NAMESPACE_BEGIN
 BoundingBox3f getChildBoundingBox(const BoundingBox3f& parent, int octant){
@@ -121,7 +122,7 @@ OctreeNode* buildRecursive(const BoundingBox3f& bbox,
     OctreeNode* node = new OctreeNode();
 
     // 받을 삼각형이 없는 노드는 nullptr로 해주고
-    for(int i = 0; i< 8; i++){
+    tbb::parallel_for(0,8, [&](int i){
         if (childTriangles[i].empty()){
             node->children[i] = nullptr;
         } else {
@@ -135,7 +136,7 @@ OctreeNode* buildRecursive(const BoundingBox3f& bbox,
                 depth + 1,
                 maxDepth);
         }
-    }
+    });
 
     return node;
 }
@@ -152,7 +153,7 @@ void Accel::build() {
     for(uint32_t i = 0; i< m_mesh->getTriangleCount(); ++i){
         allTriangles.push_back(i);
     }
-    int maxDepth = 16;
+    int maxDepth = 4;
     m_root = buildRecursive(m_bbox, allTriangles,m_mesh, 0, maxDepth);
 
     std::cout << "Octree built" << std::endl;
