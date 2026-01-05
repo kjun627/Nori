@@ -31,7 +31,21 @@ float Warp::squareToUniformSquarePdf(const Point2f &sample) {
 }
 
 Point2f Warp::squareToTent(const Point2f &sample) {
-    throw NoriException("Warp::squareToTent() is not yet implemented!");
+
+    float t_x;
+    if(sample.x()<0.5){
+      t_x = std::sqrt(2*sample.x() ) -1;  
+    }else{
+        t_x = 1 - std::sqrt(2* (1-sample.x()));
+    }
+    float t_y;
+    if(sample.y()<0.5){
+      t_y = std::sqrt(2*sample.y() ) -1;  
+    }else{
+        t_y = 1 - std::sqrt(2* (1-sample.y()));
+    }
+        
+    return Point2f(t_x, t_y);
 }
 
 float Warp::squareToTentPdf(const Point2f &p) {
