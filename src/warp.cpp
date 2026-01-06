@@ -105,6 +105,7 @@ Vector3f Warp::squareToUniformSphere(const Point2f &sample) {
 }
 
 float Warp::squareToUniformSpherePdf(const Vector3f &v) {
+    return 1/(4 * M_PI);
 }
 
 Vector3f Warp::squareToUniformHemisphere(const Point2f &sample) {
