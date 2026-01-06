@@ -73,7 +73,15 @@ float Warp::squareToTentPdf(const Point2f &p) {
 }
 
 Point2f Warp::squareToUniformDisk(const Point2f &sample) {
-    throw NoriException("Warp::squareToUniformDisk() is not yet implemented!");
+    // r = R * x_1^{1/2}
+    // theta = [0,1]~[0, 2Pi] mapping
+    float r = std::sqrt(sample.x());
+    float theta = sample.y() * 2 * M_PI;
+    
+    float x = r * std::cos(theta);
+    float y = r * std::sin(theta);
+
+    return Point2f(x, y);
 }
 
 float Warp::squareToUniformDiskPdf(const Point2f &p) {
