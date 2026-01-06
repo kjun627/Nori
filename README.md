@@ -1,35 +1,86 @@
-Advanced Computer Graphics — Homeworks
-======================================
+# Nori Ray Tracer (Ongoing)
 
-Student name:
+Physically-based rendering engine with Monte Carlo sampling.
 
-Sciper number:
+## Results
 
+### Rendering
 
-## Build status
+<p align="center">
+  <img src="nori_resuilt/3_rendering_using_Octree.png" height="300"/>
+  <img src="nori_resuilt/2_rendering_bunny.png" height="300"/>
+</p>
 
-**Insert your build badge URL here**
+### Monte Carlo Sampling
 
-## Homework results
+#### Sphere & Hemisphere Sampling
 
-| Homework   |  Links
-| ---------: | ---------------------------------------------
-| 1          | [report.html](results/homework-1/report.html)
-| 2          | [report.html](results/homework-2/report.html)
-| 3          | [report.html](results/homework-3/report.html)
-| 4          | [report.html](results/homework-4/report.html)
-| 5          | [report.html](results/homework-5/report.html)
+<p align="center">
+  <img src="nori_resuilt/sphereSampleDistribution.gif" height="280"/>
+  <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="280"/>
+</p>
 
+<p align="center">
+  <img src="nori_resuilt/SpherePDF.png" height="280"/>
+  <img src="nori_resuilt/hemispherePDF.png" height="280"/>
+</p>
 
-## Featured result
+#### Tent Distribution
 
-Feel free to show off your best render here!
+<p align="center">
+  <img src="nori_resuilt/squareToTent_result.png" height="280"/>
+  <img src="nori_resuilt/SquareToTentPDF_result.png" height="280"/>
+</p>
 
+#### Uniform Disk Sampling
 
-## Update Dependency
-CMakeLists.txt:5-8	find_package(TBB)를 메인으로 이동
-ext/CMakeLists.txt:131-134	중복 find_package 제거, TBB::tbb에서 include 경로 추출
-ext/CMakeLists.txt:184	로컬 경로 덮어쓰기 제거
-src/main.cpp:30	task_scheduler_init.h → global_control.h
-src/main.cpp:91	task_scheduler_init → global_control
-src/main.cpp:244	::automatic → std::thread::hardware_concurrency(
+<p align="center">
+  <img src="nori_resuilt/SqureToUniformDisk.png" height="280"/>
+  <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="280"/>
+</p>
+
+## Features
+
+- Ray tracing with Octree acceleration
+- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Beckmann)
+- Chi-squared statistical validation
+- Surface normal visualization
+
+## Build
+
+### TBB Configuration Fix
+
+**CMakeLists.txt**: Move `find_package(TBB)` to root (lines 5-8)
+
+**ext/CMakeLists.txt**: Remove duplicate `find_package` (lines 131-134, 184)
+
+**src/main.cpp**:
+```cpp
+// Line 30
+#include <tbb/global_control.h>
+
+// Line 91
+tbb::global_control
+
+// Line 244
+std::thread::hardware_concurrency()
+```
+
+### Build Commands
+
+```bash
+mkdir build && cd build
+cmake ..
+make -j
+```
+
+## Run
+
+```bash
+./nori scene.xml
+./warptest
+```
+
+---
+
+Advanced Computer Graphics Project
