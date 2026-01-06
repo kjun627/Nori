@@ -153,7 +153,14 @@ Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
 }
 
 float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
-    throw NoriException("Warp::squareToBeckmannPdf() is not yet implemented!");
-}
+    if(m.z() <=0.0f){
+        return 0.0f;
+    }
+    float tanSquaure = (1/pow(m.z(), 2) - 1);
+    float azimuthal = 1/(2*M_PI);
+    float longitudinalDenom = pow(alpha,2) *  pow(m.z(),3);
+    float longitudinalNume = 2 * std::exp(-tanSquaure/pow(alpha,2));
 
+    return azimuthal * (longitudinalNume/longitudinalDenom);
+}
 NORI_NAMESPACE_END
