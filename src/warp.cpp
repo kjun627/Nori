@@ -140,7 +140,16 @@ float Warp::squareToCosineHemispherePdf(const Vector3f &v) {
 }
 
 Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
-    throw NoriException("Warp::squareToBeckmann() is not yet implemented!");
+    float phi = 2.0f * M_PI * sample.x();
+    float tanSquare = - pow(alpha,2) * std::log(1-sample.y());
+    float cosTheta = 1/std::sqrt(1+(tanSquare));
+    float sintheta = std::sqrt(1-pow(cosTheta,2));
+
+    float x = sintheta * std::cos(phi);
+    float y = sintheta * std::sin(phi);
+    float z = cosTheta;
+
+    return Vector3f(x,y,z);
 }
 
 float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
