@@ -121,7 +121,10 @@ Vector3f Warp::squareToUniformHemisphere(const Point2f &sample) {
 }
 
 float Warp::squareToUniformHemispherePdf(const Vector3f &v) {
-    throw NoriException("Warp::squareToUniformHemispherePdf() is not yet implemented!");
+    if(v.z() >= 0.0f){
+        return 1/(2*M_PI);
+    }
+    return 0.0f;
 }
 
 Vector3f Warp::squareToCosineHemisphere(const Point2f &sample) {
