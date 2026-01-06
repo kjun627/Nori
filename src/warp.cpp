@@ -86,7 +86,7 @@ Point2f Warp::squareToUniformDisk(const Point2f &sample) {
 
 float Warp::squareToUniformDiskPdf(const Point2f &p) {
     // 원 안인지 밖인지 확인해야함.
-    if(p.norm() < 1.0f){
+    if(p.norm() <= 1.0f){
         return INV_PI;
     }
     return 0.0f;
@@ -128,11 +128,15 @@ float Warp::squareToUniformHemispherePdf(const Vector3f &v) {
 }
 
 Vector3f Warp::squareToCosineHemisphere(const Point2f &sample) {
-    throw NoriException("Warp::squareToCosineHemisphere() is not yet implemented!");
+    Point2f diskPoint = squareToUniformDisk(sample);
+
+    float z = std::sqrt(std::max(0.0, 1-pow(diskPoint.x(),2)- pow(diskPoint.y(),2)));
+
+    return Vector3f(diskPoint.x(), diskPoint.y(), z);
 }
 
 float Warp::squareToCosineHemispherePdf(const Vector3f &v) {
-    throw NoriException("Warp::squareToCosineHemispherePdf() is not yet implemented!");
+    return (v.z()>=0.0f) ? (v.z() / M_PI) : 0.0f;
 }
 
 Vector3f Warp::squareToBeckmann(const Point2f &sample, float alpha) {
