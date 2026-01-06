@@ -6,50 +6,70 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 ### Rendering
 
-<p align="center">
-  <img src="nori_resuilt/3_rendering_using_Octree.png" height="200"/>
-  <img src="nori_resuilt/2_rendering_bunny.png" height="200"/>
-</p>
+| Ajax Bust (Octree) | Bunny (Surface Normal) |
+|:------------------:|:----------------------:|
+| <img src="nori_resuilt/3_rendering_using_Octree.png" height="250"/> | <img src="nori_resuilt/2_rendering_bunny.png" height="250"/> |
 
 ### Monte Carlo Sampling
 
-#### Sphere & Hemisphere
+<details open>
+<summary><b>Sphere Sampling</b></summary>
 
-<p align="center">
-  <img src="nori_resuilt/sphereSampleDistribution.gif" height="180"/>
-  <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="180"/>
-</p>
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/sphereSampleDistribution.gif" height="200"/> | <img src="nori_resuilt/SpherePDF.png" height="200"/> |
 
-<p align="center">
-  <img src="nori_resuilt/SpherePDF.png" height="180"/>
-  <img src="nori_resuilt/hemispherePDF.png" height="180"/>
-</p>
+</details>
 
-#### Cosine-Weighted Hemisphere
+<details open>
+<summary><b>Hemisphere Sampling</b></summary>
 
-<p align="center">
-  <img src="nori_resuilt/CosinWeigtedSampleDistribution.png" height="180"/>
-  <img src="nori_resuilt/cosinWeigtedSamplingPDF.png" height="180"/>
-</p>
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="200"/> | <img src="nori_resuilt/hemispherePDF.png" height="200"/> |
 
-#### Tent Distribution
+</details>
 
-<p align="center">
-  <img src="nori_resuilt/squareToTent_result.png" height="180"/>
-  <img src="nori_resuilt/SquareToTentPDF_result.png" height="180"/>
-</p>
+<details open>
+<summary><b>Cosine-Weighted Hemisphere</b></summary>
 
-#### Uniform Disk
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/CosinWeigtedSampleDistribution.png" height="200"/> | <img src="nori_resuilt/cosinWeigtedSamplingPDF.png" height="200"/> |
 
-<p align="center">
-  <img src="nori_resuilt/SqureToUniformDisk.png" height="180"/>
-  <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="180"/>
-</p>
+</details>
+
+<details open>
+<summary><b>Beckmann Distribution</b></summary>
+
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/BeckmannSample.gif" height="200"/> | <img src="nori_resuilt/BeckmannPDF.png" height="200"/> |
+
+</details>
+
+<details open>
+<summary><b>Tent Distribution</b></summary>
+
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/squareToTent_result.png" height="200"/> | <img src="nori_resuilt/SquareToTentPDF_result.png" height="200"/> |
+
+</details>
+
+<details open>
+<summary><b>Uniform Disk</b></summary>
+
+| Distribution | PDF & χ² Test |
+|:------------:|:-------------:|
+| <img src="nori_resuilt/SqureToUniformDisk.png" height="200"/> | <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="200"/> |
+
+</details>
 
 ## Features
 
 - Ray tracing with Octree acceleration
-- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Beckmann)
+- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann)
 - Chi-squared statistical validation
 - Surface normal visualization
 
