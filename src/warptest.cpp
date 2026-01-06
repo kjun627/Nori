@@ -162,10 +162,10 @@ struct WarpTest {
                 x = x * 2 - 1; y = y * 2 - 1;
                 return Warp::squareToTentPdf(Point2f(x, y));
             } else {
-                x *= 2 * M_PI;
-                y = y * 2 - 1;
+                x *= 2 * M_PI; // 경도
+                y = y * 2 - 1; // 위도 [-1, 1]
 
-                double sinTheta = std::sqrt(1 - y * y);
+                double sinTheta = std::sqrt(1 - y * y);  // (1-cos^2) ^ {1/2}
                 double sinPhi = std::sin(x),
                        cosPhi = std::cos(x);
 
