@@ -7,36 +7,43 @@ Physically-based rendering engine with Monte Carlo sampling.
 ### Rendering
 
 <p align="center">
-  <img src="nori_resuilt/3_rendering_using_Octree.png" height="300"/>
-  <img src="nori_resuilt/2_rendering_bunny.png" height="300"/>
+  <img src="nori_resuilt/3_rendering_using_Octree.png" height="200"/>
+  <img src="nori_resuilt/2_rendering_bunny.png" height="200"/>
 </p>
 
 ### Monte Carlo Sampling
 
-#### Sphere & Hemisphere Sampling
+#### Sphere & Hemisphere
 
 <p align="center">
-  <img src="nori_resuilt/sphereSampleDistribution.gif" height="280"/>
-  <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="280"/>
+  <img src="nori_resuilt/sphereSampleDistribution.gif" height="180"/>
+  <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="180"/>
 </p>
 
 <p align="center">
-  <img src="nori_resuilt/SpherePDF.png" height="280"/>
-  <img src="nori_resuilt/hemispherePDF.png" height="280"/>
+  <img src="nori_resuilt/SpherePDF.png" height="180"/>
+  <img src="nori_resuilt/hemispherePDF.png" height="180"/>
+</p>
+
+#### Cosine-Weighted Hemisphere
+
+<p align="center">
+  <img src="nori_resuilt/CosinWeigtedSampleDistribution.png" height="180"/>
+  <img src="nori_resuilt/cosinWeigtedSamplingPDF.png" height="180"/>
 </p>
 
 #### Tent Distribution
 
 <p align="center">
-  <img src="nori_resuilt/squareToTent_result.png" height="280"/>
-  <img src="nori_resuilt/SquareToTentPDF_result.png" height="280"/>
+  <img src="nori_resuilt/squareToTent_result.png" height="180"/>
+  <img src="nori_resuilt/SquareToTentPDF_result.png" height="180"/>
 </p>
 
-#### Uniform Disk Sampling
+#### Uniform Disk
 
 <p align="center">
-  <img src="nori_resuilt/SqureToUniformDisk.png" height="280"/>
-  <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="280"/>
+  <img src="nori_resuilt/SqureToUniformDisk.png" height="180"/>
+  <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="180"/>
 </p>
 
 ## Features
