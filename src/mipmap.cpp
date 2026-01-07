@@ -1,4 +1,5 @@
 #include <nori/mipmap.h>
+#include <nori/warp.h>
 
 NORI_NAMESPACE_BEGIN
 Mipmap::Mipmap(const std::string& filename){
@@ -53,4 +54,60 @@ Mipmap::Mipmap(const std::string& filename){
 
     m_totalLumi = m_levels.back()(0,0);
 }
+
+Point2f Mipmap::sample(const Point2f& sample)const{
+    // uniform distribution 에서 샘플링된 두 좌표 받아옴
+    float u = sample.x();
+    float v = sample.y();
+    int x = 0, y = 0;
+
+    // 모든 밉맵 순회할거임 맨 마지막 레벨에서 초기 이미지까지 순회 
+    for (int level = m_levels.size()-1; level > 0; level --){
+        // 다음 레벨의 밉맵 받아오고
+        const MatrixXf& nextLevel = m_levels[level-1];
+        
+        // 좌표 계산하는거임 현재의 픽셀이 상위 레벨에서 어떤 픽셀인지
+        int x0 = 2*x, x1 = std::min<int>(2*x+1, nextLevel.cols() - 1);
+        int y0 = 2*y, y1 = std::min<int>(2*y+1, nextLevel.rows() - 1);
+        
+        // 히위 레벨에서의 루미넌스 값 얻어오기
+        float topLeft = nextLevel(y0, x0);
+        float topRight = nextLevel(y0, x1);
+        float bottomLeft = nextLevel(y1, x0);
+        float bottomRight = nextLevel(y1, x1);
+        float total = topLeft + topRight + bottomLeft + bottomRight;
+
+        // 좌우를 기준으로 나눠서 정규화시켜서 확률값으로 접근
+        float right = topRight + bottomRight;
+        float rightProb = right/total;
+
+        // 샘플링된 값이 계산된 확률 선택 
+        if(u < rightProb){
+            x = x1;
+            u = u / rightProb;
+        }else{
+            // 왼쪽으로
+            x = x0;
+            u = (u - rightProb) / (1.0f - rightProb);
+        }
+        //이것도 바로 위 로직이랑 동일함.
+        float topSum = (x == x1) ? topRight : topLeft;
+        float botSum = (x == x1) ? bottomRight : bottomLeft;  // ← 수정!
+        float topProb = topSum / (topSum + botSum);
+
+        if(v < topProb){
+            y = y0;
+            v = v / topProb;
+            // 이게 [0, topProb] 확률 공간이었는데
+            // 다시 나눠줘서 [0,1] 로 정의역 재설정 해줘야함.
+        }else{
+            y = y1;
+            v = (v - topProb) / (1.0f - topProb);
+        }
+    }
+    // 그래서 pixel space coordi로 변환
+    float pixelU = (x+0.5f)/m_widht;
+    float pixelV = (y+0.5f)/m_height;
+    // 최종 픽셀 위치 리턴
+    return Point2f(pixelU, pixelV);
 NORI_NAMESPACE_END
