@@ -18,6 +18,12 @@ Physically-based rendering engine with Monte Carlo sampling.
 |:---------------:|:------------------:|
 | <img src="nori_resuilt/SimpleWithShadow.png" height="250"/> | <img src="nori_resuilt/SimpleWithoutShadow.png" height="250"/> |
 
+#### Ambient Occlusion
+
+| Ajax Bust (AO) |
+|:--------------:|
+| <img src="nori_resuilt/aoResult.png" height="250"/> |
+
 ### Monte Carlo Sampling
 
 <details open>
