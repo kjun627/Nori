@@ -75,6 +75,7 @@ add_executable(nori
   include/nori/transform.h
   include/nori/vector.h
   include/nori/warp.h
+  include/nori/mipmap.h
 
   # Source code files
   src/bitmap.cpp
@@ -102,6 +103,7 @@ add_executable(nori
   src/normals.cpp
   src/simple.cpp
   src/ao.cpp
+  src/mipmap.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
