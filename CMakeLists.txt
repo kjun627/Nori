@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 3.8)
 project(nori)
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 # Find TBB before adding ext subdirectory (imported targets are directory-scoped)
 find_package(TBB REQUIRED)
 if (TBB_FOUND)
