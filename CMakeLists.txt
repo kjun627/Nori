@@ -111,12 +111,15 @@ add_definitions(${NANOGUI_EXTRA_DEFS})
 # The following lines build the warping test application
 add_executable(warptest
   include/nori/warp.h
+  include/nori/mipmap.h
   src/warp.cpp
   src/warptest.cpp
   src/microfacet.cpp
   src/object.cpp
   src/proplist.cpp
   src/common.cpp
+  src/mipmap.cpp
+  src/bitmap.cpp
 )
 
 if (WIN32)
@@ -125,7 +128,7 @@ else()
   target_link_libraries(nori  TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 endif()
 
-target_link_libraries(warptest TBB::tbb nanogui ${NANOGUI_EXTRA_LIBS})
+target_link_libraries(warptest TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")

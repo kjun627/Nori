@@ -19,6 +19,8 @@
 #include <nori/warp.h>
 #include <nori/vector.h>
 #include <nori/frame.h>
+#include <nori/mipmap.h>
+#include <nori/mipmap.h>
 
 NORI_NAMESPACE_BEGIN
 
@@ -163,4 +165,15 @@ float Warp::squareToBeckmannPdf(const Vector3f &m, float alpha) {
 
     return azimuthal * (longitudinalNume/longitudinalDenom);
 }
+
+Point2f Warp::squareToMipmap(const Point2f &sample, const Mipmap* mipmap) {
+    if (!mipmap) return sample;
+    return mipmap->sample(sample);
+}
+
+float Warp::squareToMipmapPdf(const Point2f &p, const Mipmap* mipmap) {
+    if (!mipmap) return 1.0f;
+    return mipmap->pdf(p.x(), p.y());
+}
+
 NORI_NAMESPACE_END

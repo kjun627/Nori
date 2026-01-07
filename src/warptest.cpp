@@ -17,6 +17,7 @@
 */
 
 #include <nori/warp.h>
+#include <nori/mipmap.h>
 #include <nori/bsdf.h>
 #include <nori/vector.h>
 #include <nanogui/screen.h>
@@ -85,12 +86,13 @@ enum WarpType : int {
     CosineHemisphere,
     Beckmann,
     MicrofacetBRDF,
+    Mipmap,
     WarpTypeCount
 };
 
 static const std::string kWarpTypeNames[WarpTypeCount] = {
     "square", "tent", "disk", "uniform_sphere", "uniform_hemisphere",
-    "cosine_hemisphere", "beckmann", "microfacet_brdf"
+    "cosine_hemisphere", "beckmann", "microfacet_brdf", "mipmap"
 };
 
 
@@ -102,6 +104,7 @@ struct WarpTest {
     float parameterValue;
     BSDF *bsdf;
     BSDFQueryRecord bRec;
+    nori::Mipmap *mipmap;
     int xres, yres, res;
 
     // Observed and expected frequencies, initialized after calling run().
@@ -111,9 +114,9 @@ struct WarpTest {
              BSDFQueryRecord bRec_ = BSDFQueryRecord(nori::Vector3f()),
              int xres_ = kDefaultXres, int yres_ = kDefaultYres)
         : warpType(warpType_), parameterValue(parameterValue_), bsdf(bsdf_),
-          bRec(bRec_), xres(xres_), yres(yres_) {
+          bRec(bRec_), mipmap(nullptr), xres(xres_), yres(yres_) {
 
-        if (warpType != Square && warpType != Disk && warpType != Tent)
+        if (warpType != Square && warpType != Disk && warpType != Tent && warpType != Mipmap)
             xres *= 2;
         res = xres * yres;
     }
@@ -134,7 +137,7 @@ struct WarpTest {
             nori::Vector3f sample = points.col(i);
             float x, y;
 
-            if (warpType == Square) {
+            if (warpType == Square || warpType == Mipmap) {
                 x = sample.x();
                 y = sample.y();
             } else if (warpType == Disk || warpType == Tent) {
@@ -155,6 +158,8 @@ struct WarpTest {
         auto integrand = [&](double y, double x) -> double {
             if (warpType == Square) {
                 return Warp::squareToUniformSquarePdf(Point2f(x, y));
+            } else if (warpType == Mipmap) {
+                return Warp::squareToMipmapPdf(Point2f(x, y), mipmap);
             } else if (warpType == Disk) {
                 x = x * 2 - 1; y = y * 2 - 1;
                 return Warp::squareToUniformDiskPdf(Point2f(x, y));
@@ -233,6 +238,8 @@ struct WarpTest {
         switch (warpType) {
             case Square:
                 result << Warp::squareToUniformSquare(sample), 0; break;
+            case Mipmap:
+                result << Warp::squareToMipmap(sample, mipmap), 0; break;
             case Tent:
                 result << Warp::squareToTent(sample), 0; break;
             case Disk:
@@ -440,6 +447,7 @@ public:
         nori::MatrixXf positions, values;
         try {
             WarpTest tester(warpType, parameterValue, m_brdf.get(), m_bRec);
+            tester.mipmap = m_mipmap.get();
             tester.generatePoints(m_pointCount, pointType, positions, values);
         } catch (const NoriException &e) {
             m_warpTypeBox->set_selected_index(0);
@@ -487,6 +495,7 @@ public:
             float coarseScale = 1.f / gridRes, fineScale = 1.f / fineGridRes;
 
             WarpTest tester(warpType, parameterValue, m_brdf.get(), m_bRec);
+            tester.mipmap = m_mipmap.get();
             for (int i=0; i<=gridRes; ++i) {
                 for (int j=0; j<=fineGridRes; ++j) {
                     auto pt = tester.warpPoint(Point2f(j * fineScale, i * coarseScale));
@@ -586,7 +595,7 @@ public:
             WarpType warpType = (WarpType) m_warpTypeBox->selected_index();
             const int spacer = 20;
             const int histWidth = (width() - 3*spacer) / 2;
-            const int histHeight = (warpType == Square || warpType == Disk || warpType == Tent) ? histWidth : histWidth / 2;
+            const int histHeight = (warpType == Square || warpType == Disk || warpType == Tent || warpType == Mipmap) ? histWidth : histWidth / 2;
             const int verticalOffset = (height() - histHeight) / 2;
 
             drawHistogram(Vector2i(spacer, verticalOffset), Vector2i(histWidth, histHeight), m_textures[0].get());
@@ -668,6 +677,7 @@ public:
         float parameterValue = mapParameter(warpType, m_parameterSlider->value());
 
         WarpTest tester(warpType, parameterValue, m_brdf.get(), m_bRec);
+        tester.mipmap = m_mipmap.get();
         m_testResult = tester.run();
 
         float maxValue = 0, minValue = std::numeric_limits<float>::infinity();
@@ -728,7 +738,7 @@ public:
 
         new Label(m_window, "Warping method", "sans-bold");
         m_warpTypeBox = new ComboBox(m_window, { "Square", "Tent", "Disk", "Sphere", "Hemisphere (unif.)",
-                "Hemisphere (cos)", "Beckmann distr.", "Microfacet BRDF" });
+                "Hemisphere (cos)", "Beckmann distr.", "Microfacet BRDF", "Mipmap" });
         m_warpTypeBox->set_callback([&](int) { refresh(); });
 
         panel = new Widget(m_window);
@@ -762,6 +772,21 @@ public:
 
         m_brdfValueCheckBox = new CheckBox(m_window, "Visualize BRDF values");
         m_brdfValueCheckBox->set_callback([&](bool) { refresh(); });
+
+        new Label(m_window, "Mipmap parameters", "sans-bold");
+
+        Button *loadBtn = new Button(m_window, "Load Mipmap Image");
+        loadBtn->set_callback([&]{
+            try {
+                std::string filename = file_dialog({ {"exr", "OpenEXR image"}, {"png", "PNG image"} }, false);
+                if (!filename.empty()) {
+                    m_mipmap.reset(new nori::Mipmap(filename));
+                    cout << "Loaded mipmap from: " << filename << endl;
+                }
+            } catch (const NoriException &e) {
+                new MessageDialog(this, MessageDialog::Type::Warning, "Error", "Failed to load mipmap: " + std::string(e.what()));
+            }
+        });
 
         new Label(m_window,
             std::string(utf8(0x03C7).data()) +
@@ -941,6 +966,7 @@ private:
     bool m_drawHistogram;
     std::unique_ptr<BSDF> m_brdf;
     BSDFQueryRecord m_bRec;
+    std::unique_ptr<nori::Mipmap> m_mipmap;
     std::pair<bool, std::string> m_testResult;
     nanogui::ref<RenderPass> m_renderPass;
 };
@@ -980,6 +1006,7 @@ int main(int argc, char **argv) {
     WarpType warpType;
     float paramValue, param2Value;
     std::unique_ptr<BSDF> bsdf;
+    std::unique_ptr<nori::Mipmap> mipmap;
     auto bRec = BSDFQueryRecord(nori::Vector3f());
     std::tie(warpType, paramValue, param2Value) = parse_arguments(argc, argv);
     if (warpType == MicrofacetBRDF) {
@@ -988,6 +1015,11 @@ int main(int argc, char **argv) {
         std::tie(ptr, bRec) = WarpTest::create_microfacet_bsdf(
             paramValue, param2Value, bsdfAngle);
         bsdf.reset(ptr);
+    }
+    if (warpType == Mipmap) {
+        if (argc < 3)
+            throw std::runtime_error("Mipmap requires an image file path!");
+        mipmap.reset(new nori::Mipmap(argv[2]));
     }
 
     std::string extra = "";
@@ -998,6 +1030,7 @@ int main(int argc, char **argv) {
          kWarpTypeNames[int(warpType)], paramValue, extra
     ) << std::endl;
     WarpTest tester(warpType, paramValue, bsdf.get(), bRec);
+    tester.mipmap = mipmap.get();
     auto res = tester.run();
     if (res.first)
         return 0;

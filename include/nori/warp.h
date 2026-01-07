@@ -23,6 +23,9 @@
 
 NORI_NAMESPACE_BEGIN
 
+// Forward declaration
+class Mipmap;
+
 /// A collection of useful warping functions for importance sampling
 class Warp {
 public:
@@ -67,6 +70,12 @@ public:
 
     /// Probability density of \ref squareToBeckmann()
     static float squareToBeckmannPdf(const Vector3f &m, float alpha);
+
+    /// Hierarchical sample warping using Mipmap
+    static Point2f squareToMipmap(const Point2f &sample, const Mipmap* mipmap);
+
+    /// Probability density of \ref squareToMipmap()
+    static float squareToMipmapPdf(const Point2f &p, const Mipmap* mipmap);
 };
 
 NORI_NAMESPACE_END
