@@ -110,4 +110,17 @@ Point2f Mipmap::sample(const Point2f& sample)const{
     float pixelV = (y+0.5f)/m_height;
     // 최종 픽셀 위치 리턴
     return Point2f(pixelU, pixelV);
+}
+float Mipmap::pdf(float u, float v) const{
+    // [0,1] -> pixel sapce 값으로 바꾸기 
+    int x = std::clamp((int)(u*m_widht), 0 , m_widht-1);
+    int y = std::clamp((int)(v*m_height), 0 , m_height-1); 
+    // 픽셀에서의 루미넌스값
+    float pixelLumi = m_levels[0](y,x);
+    if (m_totalLumi <= 0.0f) return 0.0f;
+
+    // 확률 * differencial area
+    float pdf = (pixelLumi/m_totalLumi) *(m_widht * m_height);
+    return pdf;
+}
 NORI_NAMESPACE_END
