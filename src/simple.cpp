@@ -20,10 +20,9 @@ public:
         shadowRay.mint = Epsilon;
         shadowRay.maxt = dist.norm();
         Intersection itsForShadow;
-        if(scene->rayIntersect(shadowRay,its)){
+        if(scene->rayIntersect(shadowRay,itsForShadow)){
             return Color3f(0.0f);
         }
-        
 
         float cosTheta = its.shFrame.n.dot(lightDir);
 
