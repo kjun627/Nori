@@ -6,9 +6,17 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 ### Rendering
 
+#### Surface Normal Visualization
+
 | Ajax Bust (Octree) | Bunny (Surface Normal) |
 |:------------------:|:----------------------:|
 | <img src="nori_resuilt/3_rendering_using_Octree.png" height="250"/> | <img src="nori_resuilt/2_rendering_bunny.png" height="250"/> |
+
+#### Simple Integrator
+
+| With Shadow Ray | Without Shadow Ray |
+|:---------------:|:------------------:|
+| <img src="nori_resuilt/SimpleWithShadow.png" height="250"/> | <img src="nori_resuilt/SimpleWithoutShadow.png" height="250"/> |
 
 ### Monte Carlo Sampling
 
