@@ -80,12 +80,30 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 </details>
 
+<details open>
+<summary><b>Hierarchical Sample Warping (Mipmap)</b></summary>
+
+#### 2×2 Test Image
+| Original Image | Distribution | PDF & χ² Test |
+|:--------------:|:------------:|:-------------:|
+| <img src="nori_resuilt/test_2x2_original.png" height="200"/> | <img src="nori_resuilt/Hierarchical SampleWarping2x2Sample.png" height="200"/> | <img src="nori_resuilt/Hierarchical SampleWarping2x2PDF.png" height="200"/> |
+
+#### Environment Map (Light Probe)
+| Original Image | Distribution | PDF & χ² Test |
+|:--------------:|:------------:|:-------------:|
+| <img src="nori_resuilt/lightPRob.png" height="200"/> | <img src="nori_resuilt/ligtpropSample.png" height="200"/> | <img src="nori_resuilt/lightProbPDF.png" height="200"/> |
+
+*Importance sampling using hierarchical mipmap structure for environment map lighting*
+
+</details>
+
 ## Features
 
 - Ray tracing with Octree acceleration
-- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann)
+- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann, **Hierarchical Mipmap**)
 - Chi-squared statistical validation
 - Surface normal visualization
+- Hierarchical importance sampling for environment maps
 
 ## Build
 
