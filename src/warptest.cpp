@@ -106,6 +106,7 @@ struct WarpTest {
     BSDFQueryRecord bRec;
     nori::Mipmap *mipmap;
     int xres, yres, res;
+    int customSampleCount = -1;  // -1이면 기본값 사용
 
     // Observed and expected frequencies, initialized after calling run().
     std::unique_ptr<double[]> obsFrequencies, expFrequencies;
@@ -120,9 +121,13 @@ struct WarpTest {
             xres *= 2;
         res = xres * yres;
     }
+    
+    void setSampleCount(int count) {
+        customSampleCount = count;
+    }
 
     std::pair<bool, std::string> run() {
-        int sampleCount = 1000 * res;
+        int sampleCount = (customSampleCount > 0) ? customSampleCount : (1000 * res);
         obsFrequencies.reset(new double[res]);
         expFrequencies.reset(new double[res]);
         memset(obsFrequencies.get(), 0, res*sizeof(double));
@@ -159,6 +164,7 @@ struct WarpTest {
             if (warpType == Square) {
                 return Warp::squareToUniformSquarePdf(Point2f(x, y));
             } else if (warpType == Mipmap) {
+                if (!mipmap) return 1.0; // Uniform fallback
                 return Warp::squareToMipmapPdf(Point2f(x, y), mipmap);
             } else if (warpType == Disk) {
                 x = x * 2 - 1; y = y * 2 - 1;
@@ -198,7 +204,7 @@ struct WarpTest {
         };
 
         double scale = sampleCount;
-        if (warpType == Square)
+        if (warpType == Square || warpType == Mipmap)
             scale *= 1;
         else if (warpType == Disk || warpType == Tent)
             scale *= 4;
@@ -239,7 +245,13 @@ struct WarpTest {
             case Square:
                 result << Warp::squareToUniformSquare(sample), 0; break;
             case Mipmap:
-                result << Warp::squareToMipmap(sample, mipmap), 0; break;
+                if (!mipmap) {
+                    // Mipmap이 로드되지 않았으면 uniform square로 대체
+                    result << Warp::squareToUniformSquare(sample), 0;
+                } else {
+                    result << Warp::squareToMipmap(sample, mipmap), 0;
+                }
+                break;
             case Tent:
                 result << Warp::squareToTent(sample), 0; break;
             case Disk:
@@ -448,6 +460,15 @@ public:
         try {
             WarpTest tester(warpType, parameterValue, m_brdf.get(), m_bRec);
             tester.mipmap = m_mipmap.get();
+            
+            // Mipmap 선택했는데 이미지가 없으면 경고
+            if (warpType == Mipmap && !m_mipmap) {
+                new MessageDialog(this, MessageDialog::Type::Warning, "Warning", 
+                    "Please load a mipmap image first using 'Load Mipmap Image' button.");
+                m_warpTypeBox->set_selected_index(0);
+                return;
+            }
+            
             tester.generatePoints(m_pointCount, pointType, positions, values);
         } catch (const NoriException &e) {
             m_warpTypeBox->set_selected_index(0);
@@ -464,7 +485,7 @@ public:
         if (!m_brdfValueCheckBox->checked() || warpType != MicrofacetBRDF)
             value_scale = 0.f;
 
-        if (warpType != Square) {
+        if (warpType != Square && warpType != Mipmap) {
             for (int i=0; i < m_pointCount; ++i) {
                 if (values(0, i) == 0.0f) {
                     positions.col(i) = nori::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN());
@@ -678,6 +699,10 @@ public:
 
         WarpTest tester(warpType, parameterValue, m_brdf.get(), m_bRec);
         tester.mipmap = m_mipmap.get();
+        
+        // GUI의 샘플 개수를 chi-square 테스트에도 사용
+        tester.setSampleCount(m_pointCount);
+        
         m_testResult = tester.run();
 
         float maxValue = 0, minValue = std::numeric_limits<float>::infinity();
@@ -982,7 +1007,8 @@ std::tuple<WarpType, float, float> parse_arguments(int argc, char **argv) {
         throw std::runtime_error("Invalid warp type!");
 
     float value = 0.f, value2 = 0.f;
-    if (argc > 2)
+    // Mipmap은 argv[2]가 이미지 경로이므로 float 파싱 제외
+    if (tp != Mipmap && argc > 2)
         value = std::stof(argv[2]);
     if (argc > 3)
         value2 = std::stof(argv[3]);

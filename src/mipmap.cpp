@@ -77,14 +77,13 @@ Point2f Mipmap::sample(const Point2f& sample)const{
         int x0 = 2*x, x1 = std::min<int>(2*x+1, nextLevel.cols() - 1);
         int y0 = 2*y, y1 = std::min<int>(2*y+1, nextLevel.rows() - 1);
         
-        // 히위 레벨에서의 루미넌스 값 얻어오기
+        // 하위 레벨에서의 루미넌스 값 얻어오기
         float topLeft = nextLevel(y0, x0);
         float topRight = nextLevel(y0, x1);
         float bottomLeft = nextLevel(y1, x0);
         float bottomRight = nextLevel(y1, x1);
         float total = topLeft + topRight + bottomLeft + bottomRight;
 
-        // Division by zero 방지
         if (total < 1e-8f) {
             // 모든 픽셀이 0이면 균등 분포로
             x = (u < 0.5f) ? x0 : x1;
@@ -94,83 +93,69 @@ Point2f Mipmap::sample(const Point2f& sample)const{
             continue;
         }
 
-        // 상하를 기준으로 나눠서 정규화시켜서 확률값으로 접근 (수직 먼저)
-        float top = topLeft + topRight;
-        float topProb = top/total;
+        // 좌우를 기준으로 나눠서 정규화
+        float left = topLeft + bottomLeft;
+        float leftProb = left / total;
 
-        // 샘플링된 값이 계산된 확률 선택
-        if(v < topProb){
-            // 위쪽 선택
-            y = y0;
-            v = (topProb > 1e-8f) ? (v / topProb) : 0.5f;
-        }else{
-            // 아래쪽 선택
-            y = y1;
-            float bottomProb = 1.0f - topProb;
-            v = (bottomProb > 1e-8f) ? ((v - topProb) / bottomProb) : 0.5f;
-        }
-
-        // 좌우 선택도 동일한 로직 (선택된 row 내에서)
-        float leftSum = (y == y0) ? topLeft : bottomLeft;
-        float rightSum = (y == y0) ? topRight : bottomRight;
-        float rowTotal = leftSum + rightSum;
-
-        if (rowTotal < 1e-8f) {
-            // Row가 0이면 균등 분포
-            x = (u < 0.5f) ? x0 : x1;
-            u = 2.0f * (u - (u < 0.5f ? 0.0f : 0.5f));
-            continue;
-        }
-
-        float leftProb = leftSum / rowTotal;
-
+        // 샘플링된 값으로 좌우 선택
         if(u < leftProb){
-            // 왼쪽 선택
             x = x0;
             u = (leftProb > 1e-8f) ? (u / leftProb) : 0.5f;
         }else{
-            // 오른쪽 선택
             x = x1;
             float rightProb = 1.0f - leftProb;
             u = (rightProb > 1e-8f) ? ((u - leftProb) / rightProb) : 0.5f;
         }
+        
+        // 상하 선택 (선택된 열 내에서)
+        float topSum = (x == x0) ? topLeft : topRight;
+        float botSum = (x == x0) ? bottomLeft : bottomRight;
+        float colTotal = topSum + botSum;
+        
+        if (colTotal < 1e-8f) {
+            // 선택된 열이 0이면 균등 분포
+            y = (v < 0.5f) ? y0 : y1;
+            v = 2.0f * (v - (v < 0.5f ? 0.0f : 0.5f));
+        } else {
+            float topProb = topSum / colTotal;
+            
+            if(v < topProb){
+                y = y0;
+                v = (topProb > 1e-8f) ? (v / topProb) : 0.5f;
+            }else{
+                y = y1;
+                float botProb = 1.0f - topProb;
+                v = (botProb > 1e-8f) ? ((v - topProb) / botProb) : 0.5f;
+            }
+        }
     }
-    // 그래서 pixel space coordi로 변환
-    float pixelU = (x+0.5f)/m_width;
-    float pixelV = (y+0.5f)/m_height;
-    // 최종 픽셀 위치 리턴
+    
+    // 최종 픽셀 위치 + 픽셀 내 offset (u,v는 [0,1] 범위)
+    float pixelU = (x + u) / m_width;
+    float pixelV = (y + v) / m_height;
+    
+    // OpenGL 텍스처는 bottom-up이므로 Y를 반전
+    pixelV = 1.0f - pixelV;
+    
     return Point2f(pixelU, pixelV);
 }
 float Mipmap::pdf(float u, float v) const{
+    // OpenGL 텍스처 좌표는 bottom-up이므로 Y를 반전
+    v = 1.0f - v;
+    
     // [0,1] -> pixel space 값으로 바꾸기
-    int x = std::min(std::max(0, (int)(u*m_width)), m_width-1);
-    int y = std::min(std::max(0, (int)(v*m_height)), m_height-1);
+    int x = std::min(std::max(0, (int)(u * m_width)), m_width - 1);
+    int y = std::min(std::max(0, (int)(v * m_height)), m_height - 1);
 
-    // 픽셀에서의 정규화된 루미넌스값
-    float pixelLumi = m_levels[0](y,x);
+    // Level 0은 이미 전체 합으로 정규화되어 있음
+    // 따라서 픽셀값은 해당 픽셀의 확률을 나타냄
+    float normalizedLumi = m_levels[0](y, x);
 
-    // 예외 처리
     if (m_totalLumi <= 0.0f) return 0.0f;
-    if (pixelLumi < 0.0f) {
-        std::cerr << "WARNING: Negative luminance at (" << x << ", " << y << "): " << pixelLumi << std::endl;
-        return 0.0f;
-    }
 
-    // 정규화된 PDF 계산
-    // level0은 이미 정규화되어 sum=1
-    // Continuous domain [0,1]x[0,1]에서의 PDF density
-    // PDF = (normalized luminance) * (total number of pixels)
-    float pdf = pixelLumi * (m_width * m_height);
-
-    if (pdf < 0.0f) {
-        std::cerr << "ERROR: Negative PDF! u=" << u << ", v=" << v
-                  << ", x=" << x << ", y=" << y
-                  << ", pixelLumi=" << pixelLumi
-                  << ", width=" << m_width << ", height=" << m_height
-                  << ", pdf=" << pdf << std::endl;
-        return 0.0f;
-    }
-
+    // PDF = (정규화된 픽셀 밝기) * (픽셀 개수)
+    // 이유: [0,1]^2 연속 공간의 적분이 1이 되려면 density를 픽셀 개수로 스케일해야 함
+    float pdf = normalizedLumi * (m_width * m_height);
     return pdf;
 }
 NORI_NAMESPACE_END
