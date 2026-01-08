@@ -12,10 +12,10 @@ public:
     Point2f sample(const Point2f& sample) const;
 
 private:
-    //level 별 mipmap 
+    //level 별 mipmap
     std::vector<MatrixXf> m_levels;
     // level 0 해상도
-    int m_widht, m_height;
+    int m_width, m_height;
     // 루미넌스 값
     float m_totalLumi;
     void buildMipmap();
