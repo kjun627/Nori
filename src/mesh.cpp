@@ -21,6 +21,7 @@
 #include <nori/bsdf.h>
 #include <nori/emitter.h>
 #include <nori/warp.h>
+#include <nori/dpdf.h>
 #include <Eigen/Geometry>
 
 NORI_NAMESPACE_BEGIN
@@ -38,6 +39,14 @@ void Mesh::activate() {
         m_bsdf = static_cast<BSDF *>(
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
+    m_pdf.reserve(getTriangleCount());
+    m_surfaceArea = 0.0f;
+    for (uint32_t i = 0; i < m_F.cols(); i++) {
+        float areaValue = surfaceArea(i);
+        m_pdf.append(areaValue);
+        m_surfaceArea += areaValue;
+    }
+    m_pdf.normalize();
 }
 
 float Mesh::surfaceArea(uint32_t index) const {
@@ -99,6 +108,21 @@ Point3f Mesh::getCentroid(uint32_t index) const {
         (m_V.col(m_F(0, index)) +
          m_V.col(m_F(1, index)) +
          m_V.col(m_F(2, index)));
+}
+
+void Mesh::sampleSurface(const Point2f &sample, Point3f &p, Normal3f &n, float &pdf) const {
+    // TODO: 표면 샘플링 구현
+    // 1. sample.x()를 m_pdf.sampleReuse()와 함께 사용해 삼각형 선택
+    //    (sampleReuse는 입력값을 재사용 가능하도록 수정함)
+    // 2. 재사용된 샘플로 무게중심 좌표(barycentric coordinates) 계산:
+    //    공식: (α, β) = (1 - √(1-ξ₁), ξ₂√(1-ξ₁))
+    //    여기서 ξ₁은 재사용된 sample.x(), ξ₂는 sample.y()
+    // 3. 선택된 삼각형의 vertex 인덱스를 m_F에서 가져오기
+    // 4. 무게중심 좌표를 사용해 position interpolation
+    // 5. Normal interpolation:
+    //    - m_N에 데이터가 있으면: per-vertex normal들을 interpolate하고 normalize
+    //    - 없으면: cross product로 face normal 계산
+    // 6. pdf = 1.0f / m_surfaceArea로 설정
 }
 
 void Mesh::addChild(NoriObject *obj) {
