@@ -24,6 +24,12 @@ Physically-based rendering engine with Monte Carlo sampling.
 |:--------------:|
 | <img src="nori_resuilt/aoResult.png" height="250"/> |
 
+#### Distribution Ray Tracing
+
+| Cornell Box | EPFL Logo (Diffuse) |
+|:-----------:|:-------------------:|
+| <img src="nori_resuilt/cbox-distributed.png" height="250"/> | <img src="nori_resuilt/logo-diffuse.png" height="250"/> |
+
 ### Monte Carlo Sampling
 
 <details open>
@@ -104,6 +110,7 @@ Physically-based rendering engine with Monte Carlo sampling.
 - Chi-squared statistical validation
 - Surface normal visualization
 - Hierarchical importance sampling for environment maps
+- Distribution ray tracing (soft shadows, area lights)
 
 ## Build
 
