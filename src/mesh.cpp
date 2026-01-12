@@ -111,18 +111,27 @@ Point3f Mesh::getCentroid(uint32_t index) const {
 }
 
 void Mesh::sampleSurface(const Point2f &sample, Point3f &p, Normal3f &n, float &pdf) const {
-    // TODO: 표면 샘플링 구현
-    // 1. sample.x()를 m_pdf.sampleReuse()와 함께 사용해 삼각형 선택
-    //    (sampleReuse는 입력값을 재사용 가능하도록 수정함)
-    // 2. 재사용된 샘플로 무게중심 좌표(barycentric coordinates) 계산:
-    //    공식: (α, β) = (1 - √(1-ξ₁), ξ₂√(1-ξ₁))
-    //    여기서 ξ₁은 재사용된 sample.x(), ξ₂는 sample.y()
-    // 3. 선택된 삼각형의 vertex 인덱스를 m_F에서 가져오기
-    // 4. 무게중심 좌표를 사용해 position interpolation
-    // 5. Normal interpolation:
-    //    - m_N에 데이터가 있으면: per-vertex normal들을 interpolate하고 normalize
-    //    - 없으면: cross product로 face normal 계산
-    // 6. pdf = 1.0f / m_surfaceArea로 설정
+    
+    float sampleX = sample.x();
+    uint32_t triangleIdx = m_pdf.sampleReuse(sampleX, pdf);
+    Point2f bary = Point2f(1-std::sqrt(1-sampleX), sample.y() *std::sqrt(1-sampleX));
+
+    uint32_t i0 = m_F(0, triangleIdx), i1 = m_F(1, triangleIdx), i2 = m_F(2, triangleIdx);
+    Point3f p0 = m_V.col(i0); 
+    Point3f p1 = m_V.col(i1); 
+    Point3f p2 = m_V.col(i2); 
+    p = (1-bary.x()-bary.y()) * p0 + bary.x() * p1 + bary.y() * p2;
+
+    
+    if(m_N.size() > 0){
+        Normal3f n0 = m_N.col(i0), n1 = m_N.col(i1), n2 = m_N.col(i2);
+        n = (1-bary.x()-bary.y()) * n0 + bary.x() * n1 + bary.y() * n2;
+        n = n.normalized();
+    }else{
+        Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
+        n = edge1.cross(edge2).normalized();
+    }
+    pdf = 1.0f/m_surfaceArea;
 }
 
 void Mesh::addChild(NoriObject *obj) {
