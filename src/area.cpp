@@ -34,6 +34,10 @@ public:
         m_radiance = props.getColor("radiance", Color3f(0.0f)); 
     }
 
+    virtual Color3f eval(const Intersection &its) const override {
+        return m_radiance;
+    }
+
     virtual std::string toString() const override {
         return tfm::format(
             "AreaEmitter[\n"

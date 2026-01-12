@@ -22,11 +22,23 @@
 
 NORI_NAMESPACE_BEGIN
 
+// Forward declaration
+struct Intersection;
+
 /**
  * \brief Superclass of all emitters
  */
 class Emitter : public NoriObject {
 public:
+    /**
+     * \brief Return the emitted radiance at a surface point
+     * 
+     * \param its
+     *    An intersection data structure describing the point in question
+     * \return
+     *    The emitted radiance (Le)
+     */
+    virtual Color3f eval(const Intersection &its) const = 0;
 
     /**
      * \brief Return the type of object (i.e. Mesh/Emitter/etc.) 
