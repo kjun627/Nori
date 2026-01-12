@@ -141,22 +141,27 @@ OctreeNode* buildRecursive(const BoundingBox3f& bbox,
     return node;
 }
 void Accel::addMesh(Mesh *mesh) {
-    if (m_mesh)
-        throw NoriException("Accel: only a single mesh is supported!");
-    m_mesh = mesh;
-    m_bbox = m_mesh->getBoundingBox();
+    m_meshes.push_back(mesh);
+    
+    // Expand bounding box to include new mesh
+    if (m_meshes.size() == 1) {
+        m_bbox = mesh->getBoundingBox();
+    } else {
+        m_bbox.expandBy(mesh->getBoundingBox());
+    }
 }
 
 void Accel::build() {
-    /* Nothing to do here for now */
-    std::vector<uint32_t> allTriangles;
-    for(uint32_t i = 0; i< m_mesh->getTriangleCount(); ++i){
-        allTriangles.push_back(i);
+    for (Mesh* mesh : m_meshes) {
+        std::vector<uint32_t> allTriangles;
+        for(uint32_t i = 0; i < mesh->getTriangleCount(); ++i){
+            allTriangles.push_back(i);
+        }
+        int maxDepth = 4;
+        OctreeNode* root = buildRecursive(mesh->getBoundingBox(), allTriangles, mesh, 0, maxDepth);
+        m_roots.push_back(root);
     }
-    int maxDepth = 4;
-    m_root = buildRecursive(m_bbox, allTriangles,m_mesh, 0, maxDepth);
-
-    std::cout << "Octree built" << std::endl;
+    std::cout << "Octree built for " << m_meshes.size() << " meshes" << std::endl;
 }
 bool rayIntersectNode(const OctreeNode* node, const BoundingBox3f& nodeBBox, 
     Ray3f& ray, Intersection& its,bool shadowRay, bool& foundIntersection, 
@@ -223,25 +228,35 @@ bool Accel::rayIntersect(const Ray3f &ray_, Intersection &its, bool shadowRay) c
 
     Ray3f ray(ray_); /// Make a copy of the ray (we will need to update its '.maxt' value)
 
-    if(!m_root){
-        // 만약에 Octree가 비어있다면 원래의 순회방식대로 진행. (무차별 대입)
-        for (uint32_t idx = 0; idx < m_mesh->getTriangleCount(); ++idx) {
-            float u, v, t;
-            if (m_mesh->rayIntersect(idx, ray, u, v, t)) {
-                /* An intersection was found! Can terminate
-                immediately if this is a shadow ray query */
-                if (shadowRay)
-                    return true;
-                ray.maxt = its.t = t;
-                its.uv = Point2f(u, v);
-                its.mesh = m_mesh;
-                f = idx;
-                foundIntersection = true;
+    // Iterate through all meshes
+    for (size_t meshIdx = 0; meshIdx < m_meshes.size(); ++meshIdx) {
+        Mesh* mesh = m_meshes[meshIdx];
+        
+        if (m_roots[meshIdx]) {
+            // Use octree for this mesh
+            bool hit = rayIntersectNode(m_roots[meshIdx], mesh->getBoundingBox(), 
+                           ray, its, shadowRay, foundIntersection, f, mesh);
+            if (shadowRay && hit)
+                return true;
+        } else {
+            // Fallback: brute force for this mesh
+            for (uint32_t idx = 0; idx < mesh->getTriangleCount(); ++idx) {
+                float u, v, t;
+                if (mesh->rayIntersect(idx, ray, u, v, t)) {
+                    if (shadowRay)
+                        return true;
+                    ray.maxt = its.t = t;
+                    its.uv = Point2f(u, v);
+                    its.mesh = mesh;
+                    f = idx;
+                    foundIntersection = true;
+                }
             }
         }
-    }else{
-        // 옥트리 빌드 된거면 옥트리 순회
-       rayIntersectNode(m_root, m_bbox, ray, its, shadowRay, foundIntersection, f, m_mesh);
+        
+        // Early exit for shadow rays
+        if (shadowRay && foundIntersection)
+            return true;
     }
         
     if (foundIntersection) {

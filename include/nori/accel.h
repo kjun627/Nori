@@ -74,10 +74,9 @@ public:
     bool rayIntersect(const Ray3f &ray, Intersection &its, bool shadowRay) const;
 
 private:
-    Mesh         *m_mesh = nullptr; ///< Mesh (only a single one for now)
-    BoundingBox3f m_bbox;           ///< Bounding box of the entire scene
-    OctreeNode* m_root = nullptr;
+    std::vector<Mesh*> m_meshes;           ///< All meshes
+    std::vector<OctreeNode*> m_roots;      ///< Octree root for each mesh
+    BoundingBox3f m_bbox;                  ///< Bounding box of the entire scene
 };
-
 
 NORI_NAMESPACE_END

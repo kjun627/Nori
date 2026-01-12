@@ -79,10 +79,10 @@ public:
         
         Ray3f shadowRay(its.p, dir);
         shadowRay.mint = Epsilon;
-        shadowRay.maxt = dist;
+        shadowRay.maxt = dist - Epsilon;
         
         if(scene->rayIntersect(shadowRay)){
-            return Le;  
+            return Le;
         }
       
         BSDFQueryRecord bRec(its.toLocal(dir), its.toLocal(-ray.d), ESolidAngle);
