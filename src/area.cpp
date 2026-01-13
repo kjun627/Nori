@@ -30,11 +30,14 @@ NORI_NAMESPACE_BEGIN
 class AreaEmitter : public Emitter {
 public:
     AreaEmitter(const PropertyList &props) {
+        // xml type parameter parscing
         m_radiance = Color3f(0.0f);
         m_radiance = props.getColor("radiance", Color3f(0.0f)); 
     }
 
     virtual Color3f eval(const Intersection &its) const override {
+        // 방출되는 radiance 계산
+        // area light 는 균일하게 방출
         return m_radiance;
     }
 
