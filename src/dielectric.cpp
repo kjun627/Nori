@@ -22,19 +22,20 @@
 NORI_NAMESPACE_BEGIN
 
 /// Ideal dielectric BSDF
+// 투명한 물질 시뮬레이션하는 BSDF
+// 빛 반사와 굴절 모두 처리
 class Dielectric : public BSDF {
 public:
     Dielectric(const PropertyList &propList) {
         /* Interior IOR (default: BK7 borosilicate optical glass) */
-        m_intIOR = propList.getFloat("intIOR", 1.5046f);
-
+        m_intIOR = propList.getFloat("intIOR", 1.5046f); // 내부 굴절율
         /* Exterior IOR (default: air) */
-        m_extIOR = propList.getFloat("extIOR", 1.000277f);
+        m_extIOR = propList.getFloat("extIOR", 1.000277f); // 외부 굴절률
     }
 
     Color3f eval(const BSDFQueryRecord &) const {
         /* Discrete BRDFs always evaluate to zero in Nori */
-        return Color3f(0.0f);
+        return Color3f(0.0f); 
     }
 
     float pdf(const BSDFQueryRecord &) const {
@@ -43,7 +44,43 @@ public:
     }
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
-        throw NoriException("Unimplemented!");
+        float wiCosTheta = Frame::cosTheta(bRec.wi);
+        float fr = fresnel(wiCosTheta, m_extIOR, m_intIOR);
+
+        float sampleX = sample.x();
+        if(sampleX < fr){
+            bRec.wo = Vector3f(
+            -bRec.wi.x(),
+            -bRec.wi.y(),
+            bRec.wi.z()
+            );
+            bRec.measure = EDiscrete;
+            /* Relative index of refraction: no change */
+            bRec.eta = 1.0f;
+            return Color3f(1.0f);
+        }else{
+            bool entering = wiCosTheta > 0.0f;
+            float etaI = entering ? m_extIOR : m_intIOR;  
+            float etaT = entering ? m_intIOR : m_extIOR;  
+            float ratio = etaI / etaT;
+
+            float sin1Squre = 1.0f - wiCosTheta * wiCosTheta;
+            float sin2Squre = ratio * ratio * sin1Squre;
+
+            if (sin2Squre >= 1.0f){
+                bRec.wo = Vector3f(-bRec.wi.x(), -bRec.wi.y(), wiCosTheta);
+                bRec.measure = EDiscrete;
+                bRec.eta = 1.0f;
+                return Color3f(1.0f);
+            }
+            float cosTheta = std::sqrt(1.0f - sin2Squre);
+            if(wiCosTheta>0.0f) cosTheta = -cosTheta;
+
+            bRec.wo = Vector3f(-ratio*bRec.wi.x(), -ratio*bRec.wi.y(), cosTheta);
+            bRec.measure = EDiscrete;
+            bRec.eta = ratio;
+            return Color3f(1.0f);
+        }
     }
 
     std::string toString() const {
