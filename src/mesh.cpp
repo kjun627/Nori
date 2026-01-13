@@ -39,14 +39,16 @@ void Mesh::activate() {
         m_bsdf = static_cast<BSDF *>(
             NoriObjectFactory::createInstance("diffuse", PropertyList()));
     }
+    // 삼각형의 개수만큼 버퍼할당
     m_pdf.reserve(getTriangleCount());
     m_surfaceArea = 0.0f;
+    // 각각의 삼각형에 대해 크기 계산후 저장시키기
     for (uint32_t i = 0; i < m_F.cols(); i++) {
         float areaValue = surfaceArea(i);
-        m_pdf.append(areaValue);
+        m_pdf.append(areaValue); // 아 여기서 일종의 CDF처럼 값이 push 되고
         m_surfaceArea += areaValue;
     }
-    m_pdf.normalize();
+    m_pdf.normalize(); // 그 리스트 CDF 리스트들에 대해 [0,1] 로 nornalization
 }
 
 float Mesh::surfaceArea(uint32_t index) const {
@@ -112,25 +114,30 @@ Point3f Mesh::getCentroid(uint32_t index) const {
 
 void Mesh::sampleSurface(const Point2f &sample, Point3f &p, Normal3f &n, float &pdf) const {
     
-    float sampleX = sample.x();
-    uint32_t triangleIdx = m_pdf.sampleReuse(sampleX, pdf);
+    float sampleX = sample.x(); // [0,1] 난수 생성
+    uint32_t triangleIdx = m_pdf.sampleReuse(sampleX, pdf); // 면적이 큰 삼각형 일수록 높은 확률로 선택되고 그 인덱스를 반환(CDF기반)
+    // barycentic coordi 기반 좌표 - 과제 설명에 나와있음
     Point2f bary = Point2f(1-std::sqrt(1-sampleX), sample.y() *std::sqrt(1-sampleX));
 
+    // vertex 인덱스 받아오기
     uint32_t i0 = m_F(0, triangleIdx), i1 = m_F(1, triangleIdx), i2 = m_F(2, triangleIdx);
-    Point3f p0 = m_V.col(i0); 
-    Point3f p1 = m_V.col(i1); 
-    Point3f p2 = m_V.col(i2); 
+    Point3f p0 = m_V.col(i0); // 인덱스 기반 실제 포인트 추출 
+    Point3f p1 = m_V.col(i1); // 인덱스 기반 실제 포인트 추출
+    Point3f p2 = m_V.col(i2); // 인덱스 기반 실제 포인트 추출
+    // sample point p 에 대한 interpolation
     p = (1-bary.x()-bary.y()) * p0 + bary.x() * p1 + bary.y() * p2;
 
-    
+    // normal 이 존재할경우 interpolation
     if(m_N.size() > 0){
         Normal3f n0 = m_N.col(i0), n1 = m_N.col(i1), n2 = m_N.col(i2);
         n = (1-bary.x()-bary.y()) * n0 + bary.x() * n1 + bary.y() * n2;
         n = n.normalized();
     }else{
+        // 없으면 노말 직접 계산해주기
         Vector3f edge1 = p1 - p0, edge2 = p2 - p0;
         n = edge1.cross(edge2).normalized();
     }
+    // 1/면적으로 pdf 계산
     pdf = 1.0f/m_surfaceArea;
 }
 
