@@ -118,9 +118,20 @@ public:
         }
 
         if (!texcoords.empty()) {
-            m_UV.resize(2, vertices.size());
-            for (uint32_t i=0; i<vertices.size(); ++i)
-                m_UV.col(i) = texcoords.at(vertices[i].uv-1);
+            // Check if all vertices have valid UV indices
+            bool allUVsValid = true;
+            for (uint32_t i=0; i<vertices.size(); ++i) {
+                if (vertices[i].uv == (uint32_t) -1 || vertices[i].uv == 0 || vertices[i].uv > texcoords.size()) {
+                    allUVsValid = false;
+                    break;
+                }
+            }
+
+            if (allUVsValid) {
+                m_UV.resize(2, vertices.size());
+                for (uint32_t i=0; i<vertices.size(); ++i)
+                    m_UV.col(i) = texcoords.at(vertices[i].uv-1);
+            }
         }
 
         m_name = filename.str();
