@@ -50,23 +50,94 @@ public:
 
     /// Evaluate the BRDF for the given pair of directions
     Color3f eval(const BSDFQueryRecord &bRec) const {
-    	throw NoriException("MicrofacetBRDF::eval(): not implemented!");
+        //microfacit half vector 계산
+    	Vector3f half = (bRec.wi + bRec.wo).normalized();
+        // 여기서의 각도계산
+        float cosThetaI = Frame::cosTheta(bRec.wi);
+        float cosThetaO = Frame::cosTheta(bRec.wo);
+        float cosThetaH = Frame::cosTheta(half);    
+
+        if(cosThetaI <= 0 || cosThetaO <= 0 || cosThetaH <= 0) return Color3f(0.0f);
+
+        Color3f diffuse = m_kd / M_PI;
+
+        float D = Warp::squareToBeckmannPdf(half,m_alpha);
+        float fr = fresnel(half.dot(bRec.wi), m_extIOR, m_intIOR);
+        float g = G1(bRec.wi, half) * G1(bRec.wo, half);
+
+        float spec = (D * fr * g) / (4.0f * cosThetaI * cosThetaO * cosThetaH);
+
+        return diffuse + m_ks * spec;
+
     }
 
     /// Evaluate the sampling density of \ref sample() wrt. solid angles
     float pdf(const BSDFQueryRecord &bRec) const {
-    	throw NoriException("MicrofacetBRDF::pdf(): not implemented!");
+        if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
+            return 0.0f;
+        
+        // Half vector 계산
+        Vector3f wh = (bRec.wi + bRec.wo).normalized();
+        
+        // 자코비안 Jh = 1 / (4 * (wh · wo))
+        float whDotWo = wh.dot(bRec.wo);
+        if (whDotWo <= 0)
+            return 0.0f;
+        
+        float Jh = 1.0f / (4.0f * whDotWo);
+        
+        // PDF 계산
+        float specularPdf = m_ks * Warp::squareToBeckmannPdf(wh, m_alpha) * Jh;
+        float diffusePdf = (1.0f - m_ks) * Frame::cosTheta(bRec.wo) * INV_PI;
+        
+        return specularPdf + diffusePdf;
     }
 
     /// Sample the BRDF
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &_sample) const {
-    	throw NoriException("MicrofacetBRDF::sample(): not implemented!");
-
-        // Note: Once you have implemented the part that computes the scattered
-        // direction, the last part of this function should simply return the
-        // BRDF value divided by the solid angle density and multiplied by the
-        // cosine factor from the reflection equation, i.e.
-        // return eval(bRec) * Frame::cosTheta(bRec.wo) / pdf(bRec);
+        if (Frame::cosTheta(bRec.wi) <= 0)
+            return Color3f(0.0f);
+        
+        bRec.measure = ESolidAngle;
+        
+        Point2f sample = _sample;
+        
+        // sampelx 과 ks를 비교하여 diffuse vs specular 결정
+        if (sample.x() < m_ks) {
+            // Specular reflection
+            
+            // sample x 을 재사용하기 위해 크기 조정 (리매핑)
+            sample.x() = sample.x() / m_ks;
+            
+            // Beckmann 에서 half vector 샘플링
+            Vector3f wh = Warp::squareToBeckmann(sample, m_alpha);
+            
+            // Half vector를 사용하여 입사 방향을 반사시켜 출사 방향 생성
+            bRec.wo = 2.0f * wh.dot(bRec.wi) * wh - bRec.wi;
+            
+            // 반구 아래 예외 처리
+            if (Frame::cosTheta(bRec.wo) <= 0)
+                return Color3f(0.0f);
+            
+        } else {
+            // Diffuse reflection
+            
+            
+            sample.x() = (sample.x() - m_ks) / (1.0f - m_ks);
+            
+            // weight cosin sampling
+            bRec.wo = Warp::squareToCosineHemisphere(sample);
+        }
+        
+        
+        bRec.eta = 1.0f;
+        
+        // BRDF value / pdf * cos
+        float pdfValue = pdf(bRec);
+        if (pdfValue <= 0)
+            return Color3f(0.0f);
+        
+        return eval(bRec) * Frame::cosTheta(bRec.wo) / pdfValue;
     }
 
     bool isDiffuse() const {
@@ -97,6 +168,24 @@ private:
     float m_intIOR, m_extIOR;
     float m_ks;
     Color3f m_kd;
+
+    float G1(const Vector3f& wv, const Vector3f& wh) const {
+        
+        float c = wv.dot(wh) / Frame::cosTheta(wv);
+        if (c <= 0) return 0.0f;
+        
+        float tanThetaV = Frame::tanTheta(wv);
+        if (std::isinf(tanThetaV)) return 0.0f;
+        
+        float b = 1.0f / (m_alpha * tanThetaV);
+        
+        if (b < 1.6f) {
+            float b2 = b * b;
+            return (3.535f * b + 2.181f * b2) / 
+                   (1.0f + 2.276f * b + 2.577f * b2);
+        }
+        return 1.0f;
+    }
 };
 
 NORI_REGISTER_CLASS(Microfacet, "microfacet");
