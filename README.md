@@ -36,6 +36,12 @@ Physically-based rendering engine with Monte Carlo sampling.
 |:----------------------------:|:----------------------:|
 | <img src="nori_resuilt/cbox-whitted.png" height="250"/> | <img src="nori_resuilt/logo_dielectric.png" height="250"/> |
 
+#### Microfacet BRDF
+
+| Ajax Smooth (α=0.05) | Ajax Rough (α=0.3) |
+|:--------------------:|:------------------:|
+| <img src="nori_resuilt/ajax-smooth.png" height="250"/> | <img src="nori_resuilt/ajax-rough.png" height="250"/> |
+
 ### Monte Carlo Sampling
 
 <details open>
@@ -119,6 +125,7 @@ Physically-based rendering engine with Monte Carlo sampling.
 - Distribution ray tracing (soft shadows, area lights)
 - Whitted-style ray tracing (recursive reflection/refraction)
 - Dielectric BSDF (Fresnel, Snell's law, TIR)
+- Microfacet BRDF (Cook-Torrance, Beckmann NDF, Smith G1)
 
 ## Build
 
