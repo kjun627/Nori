@@ -2,134 +2,102 @@
 
 Physically-based rendering engine with Monte Carlo sampling.
 
-## Results
+---
 
-### Rendering
+<p align="center">
+  <img src="nori_resuilt/scene.png" width="700"/>
+  <br>
+  <em>Custom Scene - Microfacet materials with various roughness and colors</em>
+</p>
 
-#### Surface Normal Visualization
+---
 
-| Ajax Bust (Octree) | Bunny (Surface Normal) |
-|:------------------:|:----------------------:|
-| <img src="nori_resuilt/3_rendering_using_Octree.png" height="250"/> | <img src="nori_resuilt/2_rendering_bunny.png" height="250"/> |
+## Rendering Results
 
-#### Simple Integrator
+### Ajax Bust Series
 
-| With Shadow Ray | Without Shadow Ray |
-|:---------------:|:------------------:|
-| <img src="nori_resuilt/SimpleWithShadow.png" height="250"/> | <img src="nori_resuilt/SimpleWithoutShadow.png" height="250"/> |
+| Surface Normal | Simple Integrator | Ambient Occlusion |
+|:--------------:|:-----------------:|:-----------------:|
+| <img src="nori_resuilt/3_rendering_using_Octree.png" height="200"/> | <img src="nori_resuilt/SimpleWithShadow.png" height="200"/> | <img src="nori_resuilt/aoResult.png" height="200"/> |
 
-#### Ambient Occlusion
+| Microfacet Smooth (α=0.05) | Microfacet Rough (α=0.3) |
+|:--------------------------:|:------------------------:|
+| <img src="nori_resuilt/ajax-smooth.png" height="200"/> | <img src="nori_resuilt/ajax-rough.png" height="200"/> |
 
-| Ajax Bust (AO) |
-|:--------------:|
-| <img src="nori_resuilt/aoResult.png" height="250"/> |
+### Cornell Box Series
 
-#### Distribution Ray Tracing
+| Distribution Ray Tracing | Whitted-Style (Glass + Mirror) |
+|:------------------------:|:------------------------------:|
+| <img src="nori_resuilt/cbox-distributed.png" height="220"/> | <img src="nori_resuilt/cbox-whitted.png" height="220"/> |
 
-| Cornell Box | EPFL Logo (Diffuse) |
-|:-----------:|:-------------------:|
-| <img src="nori_resuilt/cbox-distributed.png" height="250"/> | <img src="nori_resuilt/logo-diffuse.png" height="250"/> |
+### EPFL Logo Series
 
-#### Whitted-Style Ray Tracing
-
-| Cornell Box (Glass + Mirror) | EPFL Logo (Dielectric) |
-|:----------------------------:|:----------------------:|
-| <img src="nori_resuilt/cbox-whitted.png" height="250"/> | <img src="nori_resuilt/logo_dielectric.png" height="250"/> |
-
-#### Microfacet BRDF
-
-| Ajax Smooth (α=0.05) | Ajax Rough (α=0.3) |
+| Diffuse (Area Light) | Dielectric (Glass) |
 |:--------------------:|:------------------:|
-| <img src="nori_resuilt/ajax-smooth.png" height="250"/> | <img src="nori_resuilt/ajax-rough.png" height="250"/> |
+| <img src="nori_resuilt/logo-diffuse.png" height="200"/> | <img src="nori_resuilt/logo_dielectric.png" height="200"/> |
 
-### Monte Carlo Sampling
+---
 
-<details open>
-<summary><b>Sphere Sampling</b></summary>
+## Monte Carlo Sampling
 
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/sphereSampleDistribution.gif" height="200"/> | <img src="nori_resuilt/SpherePDF.png" height="200"/> |
+<details>
+<summary><b>Sphere & Hemisphere Sampling</b></summary>
+<br>
 
-</details>
-
-<details open>
-<summary><b>Hemisphere Sampling</b></summary>
-
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="200"/> | <img src="nori_resuilt/hemispherePDF.png" height="200"/> |
+| | Sphere | Hemisphere | Cosine-Weighted |
+|:-:|:------:|:----------:|:---------------:|
+| **Distribution** | <img src="nori_resuilt/sphereSampleDistribution.gif" height="150"/> | <img src="nori_resuilt/hemishpereSampleDistribution.gif" height="150"/> | <img src="nori_resuilt/CosinWeigtedSampleDistribution.png" height="150"/> |
+| **χ² Test** | <img src="nori_resuilt/SpherePDF.png" height="150"/> | <img src="nori_resuilt/hemispherePDF.png" height="150"/> | <img src="nori_resuilt/cosinWeigtedSamplingPDF.png" height="150"/> |
 
 </details>
 
-<details open>
-<summary><b>Cosine-Weighted Hemisphere</b></summary>
+<details>
+<summary><b>2D Sampling (Tent, Disk, Beckmann)</b></summary>
+<br>
 
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/CosinWeigtedSampleDistribution.png" height="200"/> | <img src="nori_resuilt/cosinWeigtedSamplingPDF.png" height="200"/> |
-
-</details>
-
-<details open>
-<summary><b>Beckmann Distribution</b></summary>
-
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/BeckmannSample.gif" height="200"/> | <img src="nori_resuilt/BeckmannPDF.png" height="200"/> |
+| | Tent | Uniform Disk | Beckmann |
+|:-:|:----:|:------------:|:--------:|
+| **Distribution** | <img src="nori_resuilt/squareToTent_result.png" height="150"/> | <img src="nori_resuilt/SqureToUniformDisk.png" height="150"/> | <img src="nori_resuilt/BeckmannSample.gif" height="150"/> |
+| **χ² Test** | <img src="nori_resuilt/SquareToTentPDF_result.png" height="150"/> | <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="150"/> | <img src="nori_resuilt/BeckmannPDF.png" height="150"/> |
 
 </details>
 
-<details open>
-<summary><b>Tent Distribution</b></summary>
+<details>
+<summary><b>Hierarchical Sample Warping (Environment Map)</b></summary>
+<br>
 
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/squareToTent_result.png" height="200"/> | <img src="nori_resuilt/SquareToTentPDF_result.png" height="200"/> |
-
-</details>
-
-<details open>
-<summary><b>Uniform Disk</b></summary>
-
-| Distribution | PDF & χ² Test |
-|:------------:|:-------------:|
-| <img src="nori_resuilt/SqureToUniformDisk.png" height="200"/> | <img src="nori_resuilt/SquareToUnformDiskPDF.png" height="200"/> |
+| 2×2 Test | Light Probe |
+|:--------:|:-----------:|
+| <img src="nori_resuilt/test_2x2_original.png" height="120"/> | <img src="nori_resuilt/lightPRob.png" height="120"/> |
+| <img src="nori_resuilt/Hierarchical SampleWarping2x2Sample.png" height="120"/> | <img src="nori_resuilt/ligtpropSample.png" height="120"/> |
+| <img src="nori_resuilt/Hierarchical SampleWarping2x2PDF.png" height="120"/> | <img src="nori_resuilt/lightProbPDF.png" height="120"/> |
 
 </details>
 
-<details open>
-<summary><b>Hierarchical Sample Warping (Mipmap)</b></summary>
-
-#### 2×2 Test Image
-| Original Image | Distribution | PDF & χ² Test |
-|:--------------:|:------------:|:-------------:|
-| <img src="nori_resuilt/test_2x2_original.png" height="200"/> | <img src="nori_resuilt/Hierarchical SampleWarping2x2Sample.png" height="200"/> | <img src="nori_resuilt/Hierarchical SampleWarping2x2PDF.png" height="200"/> |
-
-#### Environment Map (Light Probe)
-| Original Image | Distribution | PDF & χ² Test |
-|:--------------:|:------------:|:-------------:|
-| <img src="nori_resuilt/lightPRob.png" height="200"/> | <img src="nori_resuilt/ligtpropSample.png" height="200"/> | <img src="nori_resuilt/lightProbPDF.png" height="200"/> |
-
-*Importance sampling using hierarchical mipmap structure for environment map lighting*
-
-</details>
+---
 
 ## Features
 
-- Ray tracing with Octree acceleration
-- Monte Carlo sampling (Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann, **Hierarchical Mipmap**)
-- Chi-squared statistical validation
-- Surface normal visualization
-- Hierarchical importance sampling for environment maps
-- Distribution ray tracing (soft shadows, area lights)
-- Whitted-style ray tracing (recursive reflection/refraction)
-- Dielectric BSDF (Fresnel, Snell's law, TIR)
-- Microfacet BRDF (Cook-Torrance, Beckmann NDF, Smith G1)
+| Category | Implementations |
+|:---------|:----------------|
+| **Acceleration** | Octree spatial partitioning |
+| **Integrators** | Normal, Simple, AO, Distribution, Whitted |
+| **BSDFs** | Diffuse, Mirror, Dielectric, Microfacet |
+| **Sampling** | Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann |
+| **Advanced** | Hierarchical mipmap importance sampling |
+
+---
 
 ## Build
 
-### TBB Configuration Fix
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j
+```
+
+<details>
+<summary><b>TBB Configuration Fix (if needed)</b></summary>
 
 **CMakeLists.txt**: Move `find_package(TBB)` to root (lines 5-8)
 
@@ -137,23 +105,12 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 **src/main.cpp**:
 ```cpp
-// Line 30
-#include <tbb/global_control.h>
-
-// Line 91
-tbb::global_control
-
-// Line 244
-std::thread::hardware_concurrency()
+#include <tbb/global_control.h>  // Line 30
+tbb::global_control              // Line 91
+std::thread::hardware_concurrency()  // Line 244
 ```
 
-### Build Commands
-
-```bash
-mkdir build && cd build
-cmake ..
-make -j
-```
+</details>
 
 ## Run
 
@@ -164,4 +121,6 @@ make -j
 
 ---
 
-Advanced Computer Graphics Project
+<p align="center">
+  <b>Advanced Computer Graphics Project</b>
+</p>
