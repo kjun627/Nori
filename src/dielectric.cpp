@@ -44,11 +44,11 @@ public:
     }
 
     Color3f sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
-        float wiCosTheta = Frame::cosTheta(bRec.wi);
-        float fr = fresnel(wiCosTheta, m_extIOR, m_intIOR);
+        float wiCosTheta = Frame::cosTheta(bRec.wi); // 입사각에 대한 코사인 값
+        float fr = fresnel(wiCosTheta, m_extIOR, m_intIOR); // 프레넬 방정식 기반으로 반사율 계산 (fr)
 
-        float sampleX = sample.x();
-        if(sampleX < fr){
+        float sampleX = sample.x(); // sample
+        if(sampleX < fr){ // 샘플 x의 확률 값이 fr보다 작다면 그냥 일반 반사 처리
             bRec.wo = Vector3f(
             -bRec.wi.x(),
             -bRec.wi.y(),
@@ -59,21 +59,21 @@ public:
             bRec.eta = 1.0f;
             return Color3f(1.0f);
         }else{
-            bool entering = wiCosTheta > 0.0f;
-            float etaI = entering ? m_extIOR : m_intIOR;  
-            float etaT = entering ? m_intIOR : m_extIOR;  
-            float ratio = etaI / etaT;
+            bool entering = wiCosTheta > 0.0f; // 들어오는 각도 체크
+            float etaI = entering ? m_extIOR : m_intIOR;  // incident에서의 굴절률
+            float etaT = entering ? m_intIOR : m_extIOR;  // transmitted에서의 굴절률
+            float ratio = etaI / etaT; // 굴절 각도계산할 때 사용
 
             float sin1Squre = 1.0f - wiCosTheta * wiCosTheta;
-            float sin2Squre = ratio * ratio * sin1Squre;
+            float sin2Squre = ratio * ratio * sin1Squre; // 스넬 법치 기반 sin^2 계산
 
-            if (sin2Squre >= 1.0f){
+            if (sin2Squre >= 1.0f){ // 전반사 체크
                 bRec.wo = Vector3f(-bRec.wi.x(), -bRec.wi.y(), wiCosTheta);
                 bRec.measure = EDiscrete;
                 bRec.eta = 1.0f;
-                return Color3f(1.0f);
+                return Color3f(1.0f); // 전반사면 완전 반사 처리
             }
-            float cosTheta = std::sqrt(1.0f - sin2Squre);
+            float cosTheta = std::sqrt(1.0f - sin2Squre); // 여기는 정상 굴절일 때 코사인 확인
             if(wiCosTheta>0.0f) cosTheta = -cosTheta;
 
             bRec.wo = Vector3f(-ratio*bRec.wi.x(), -ratio*bRec.wi.y(), cosTheta);
