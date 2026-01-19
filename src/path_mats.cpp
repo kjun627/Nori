@@ -59,7 +59,8 @@ public:
             if(bRec.measure == EDiscrete) eta *= bRec.eta;
             if(depth >= 3){
                 float continuePropability = std::min(totalThroughPut.maxCoeff() * eta * eta, 0.99f); // 러시안 룰렛
-                if(random() > continuePropability) break;
+                if(sampler->next1D() > continuePropability) break;
+                totalThroughPut /= continuePropability;
             }
             
 
