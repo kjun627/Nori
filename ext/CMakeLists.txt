@@ -119,19 +119,26 @@ add_subdirectory(openexr)
 set_property(TARGET IexMath eLut toFloat b44ExpLogTable dwaLookups IlmThread Half Iex Imath IlmImf PROPERTY FOLDER "dependencies")
 
 # Build Thread Building Blocks (main shared libraries only)
-set(TBB_BUILD_SHARED          OFF  CACHE BOOL " " FORCE)
-set(TBB_BUILD_STATIC          ON   CACHE BOOL " " FORCE)
-set(TBB_BUILD_TBBMALLOC       OFF  CACHE BOOL " " FORCE)
-set(TBB_BUILD_TBBMALLOC_PROXY OFF  CACHE BOOL " " FORCE)
-set(TBB_BUILD_TESTS           OFF  CACHE BOOL " " FORCE)
-#add_subdirectory(tbb)
-#set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
-
-
-# TBB is found in the parent CMakeLists.txt
-# Set TBB_INCLUDE_DIR for include_directories in parent scope
-get_target_property(TBB_INCLUDE_DIR TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)
-set(TBB_INCLUDE_DIR ${TBB_INCLUDE_DIR} PARENT_SCOPE)
+if(USE_SYSTEM_TBB)
+    # Using system TBB - get include directory
+    get_target_property(TBB_INCLUDE_DIR TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)
+    set(TBB_INCLUDE_DIR ${TBB_INCLUDE_DIR} PARENT_SCOPE)
+    message(STATUS "Nori: Using system TBB includes: ${TBB_INCLUDE_DIR}")
+else()
+    # Build TBB from ext/tbb subdirectory
+    set(TBB_BUILD_SHARED          OFF  CACHE BOOL " " FORCE)
+    set(TBB_BUILD_STATIC          ON   CACHE BOOL " " FORCE)
+    set(TBB_BUILD_TBBMALLOC       OFF  CACHE BOOL " " FORCE)
+    set(TBB_BUILD_TBBMALLOC_PROXY OFF  CACHE BOOL " " FORCE)
+    set(TBB_BUILD_TESTS           OFF  CACHE BOOL " " FORCE)
+    
+    add_subdirectory(tbb)
+    set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
+    
+    # Set TBB_INCLUDE_DIR for built-from-source TBB
+    set(TBB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tbb/include" PARENT_SCOPE)
+    message(STATUS "Nori: Building TBB from source")
+endif()
 
 if (APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION=1")
