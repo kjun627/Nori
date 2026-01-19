@@ -14,27 +14,27 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 ## Rendering Results
 
+### Path Tracing (Global Illumination)
+
+| Cornell Box | Veach MIS Scene | Table Scene |
+|:-----------:|:---------------:|:-----------:|
+| <img src="nori_resuilt/burute_path_cbox.png" height="200"/> | <img src="nori_resuilt/burute_veach.png" height="200"/> | <img src="nori_resuilt/burute_path.png" height="200"/> |
+
 ### Ajax Bust Series
 
 | Surface Normal | Simple Integrator | Ambient Occlusion |
 |:--------------:|:-----------------:|:-----------------:|
-| <img src="nori_resuilt/3_rendering_using_Octree.png" height="200"/> | <img src="nori_resuilt/SimpleWithShadow.png" height="200"/> | <img src="nori_resuilt/aoResult.png" height="200"/> |
+| <img src="nori_resuilt/3_rendering_using_Octree.png" height="180"/> | <img src="nori_resuilt/SimpleWithShadow.png" height="180"/> | <img src="nori_resuilt/aoResult.png" height="180"/> |
 
 | Microfacet Smooth (α=0.05) | Microfacet Rough (α=0.3) |
 |:--------------------------:|:------------------------:|
-| <img src="nori_resuilt/ajax-smooth.png" height="200"/> | <img src="nori_resuilt/ajax-rough.png" height="200"/> |
+| <img src="nori_resuilt/ajax-smooth.png" height="180"/> | <img src="nori_resuilt/ajax-rough.png" height="180"/> |
 
-### Cornell Box Series
+### Cornell Box & EPFL Logo
 
-| Distribution Ray Tracing | Whitted-Style (Glass + Mirror) |
-|:------------------------:|:------------------------------:|
-| <img src="nori_resuilt/cbox-distributed.png" height="220"/> | <img src="nori_resuilt/cbox-whitted.png" height="220"/> |
-
-### EPFL Logo Series
-
-| Diffuse (Area Light) | Dielectric (Glass) |
-|:--------------------:|:------------------:|
-| <img src="nori_resuilt/logo-diffuse.png" height="200"/> | <img src="nori_resuilt/logo_dielectric.png" height="200"/> |
+| Distribution Ray Tracing | Whitted-Style | Diffuse | Dielectric |
+|:------------------------:|:-------------:|:-------:|:----------:|
+| <img src="nori_resuilt/cbox-distributed.png" height="180"/> | <img src="nori_resuilt/cbox-whitted.png" height="180"/> | <img src="nori_resuilt/logo-diffuse.png" height="180"/> | <img src="nori_resuilt/logo_dielectric.png" height="180"/> |
 
 ---
 
@@ -81,10 +81,10 @@ Physically-based rendering engine with Monte Carlo sampling.
 | Category | Implementations |
 |:---------|:----------------|
 | **Acceleration** | Octree spatial partitioning |
-| **Integrators** | Normal, Simple, AO, Distribution, Whitted |
+| **Integrators** | Normal, Simple, AO, Distribution, Whitted, **Path Tracing** |
 | **BSDFs** | Diffuse, Mirror, Dielectric, Microfacet |
 | **Sampling** | Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann |
-| **Advanced** | Hierarchical mipmap importance sampling |
+| **Advanced** | Hierarchical mipmap importance sampling, Russian Roulette |
 
 ---
 
