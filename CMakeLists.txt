@@ -142,18 +142,10 @@ add_executable(warptest
 if (WIN32)
   target_link_libraries(nori  pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS} zlibstatic)
 else()
-  if(USE_SYSTEM_TBB)
-    target_link_libraries(nori  TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
-  else()
-    target_link_libraries(nori  tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
-  endif()
+  target_link_libraries(nori  TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 endif()
 
-if(USE_SYSTEM_TBB)
-  target_link_libraries(warptest TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
-else()
-  target_link_libraries(warptest tbb_static pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
-endif()
+target_link_libraries(warptest TBB::tbb pugixml IlmImf nanogui ${NANOGUI_EXTRA_LIBS})
 
 # Force colored output for the ninja generator
 if (CMAKE_GENERATOR STREQUAL "Ninja")

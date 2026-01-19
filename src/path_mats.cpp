@@ -57,9 +57,11 @@ public:
             totalThroughPut *= bsdfVal; // update throughput
             
             if(bRec.measure == EDiscrete) eta *= bRec.eta;
-
-            float continuePropability = std::min(totalThroughPut.maxCoeff() * eta * eta, 0.99f); // 러시안 룰렛
-            if(random() > continuePropability) break;
+            if(depth >= 3){
+                float continuePropability = std::min(totalThroughPut.maxCoeff() * eta * eta, 0.99f); // 러시안 룰렛
+                if(random() > continuePropability) break;
+            }
+            
 
             Vector3f newDir = its.toWorld(bRec.wo); // nextRay
             currentRay = Ray3f(its.p, newDir);
