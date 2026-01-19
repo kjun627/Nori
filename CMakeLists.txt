@@ -106,6 +106,7 @@ add_executable(nori
   src/mipmap.cpp
   src/area.cpp
   src/whitted.cpp
+  src/path_mats.cpp
 )
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
