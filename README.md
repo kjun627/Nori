@@ -16,9 +16,26 @@ Physically-based rendering engine with Monte Carlo sampling.
 
 ### Path Tracing (Global Illumination)
 
-| Cornell Box | Veach MIS Scene | Table Scene |
-|:-----------:|:---------------:|:-----------:|
-| <img src="nori_resuilt/burute_path_cbox.png" height="200"/> | <img src="nori_resuilt/burute_veach.png" height="200"/> | <img src="nori_resuilt/burute_path.png" height="200"/> |
+<table>
+<tr>
+<th></th>
+<th>Cornell Box</th>
+<th>Veach MIS Scene</th>
+<th>Table Scene</th>
+</tr>
+<tr>
+<td><b>BSDF Sampling</b><br><sub>(Brute Force)</sub></td>
+<td><img src="nori_resuilt/burute_path_cbox.png" height="180"/></td>
+<td><img src="nori_resuilt/burute_veach.png" height="180"/></td>
+<td><img src="nori_resuilt/burute_path.png" height="180"/></td>
+</tr>
+<tr>
+<td><b>Next Event Estimation</b><br><sub>(Emitter Sampling)</sub></td>
+<td><img src="nori_resuilt/cbox_ems.png" height="180"/></td>
+<td><img src="nori_resuilt/veach_ems.png" height="180"/></td>
+<td><img src="nori_resuilt/table_ems.png" height="180"/></td>
+</tr>
+</table>
 
 ### Ajax Bust Series
 
@@ -81,7 +98,7 @@ Physically-based rendering engine with Monte Carlo sampling.
 | Category | Implementations |
 |:---------|:----------------|
 | **Acceleration** | Octree spatial partitioning |
-| **Integrators** | Normal, Simple, AO, Distribution, Whitted, **Path Tracing** |
+| **Integrators** | Normal, Simple, AO, Distribution, Whitted, **Path Tracing**, **NEE** |
 | **BSDFs** | Diffuse, Mirror, Dielectric, Microfacet |
 | **Sampling** | Tent, Disk, Sphere, Hemisphere, Cosine-weighted, Beckmann |
 | **Advanced** | Hierarchical mipmap importance sampling, Russian Roulette |
