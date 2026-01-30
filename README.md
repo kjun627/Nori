@@ -1,4 +1,4 @@
-# Nori Ray Tracer (Ongoing)
+# Nori Ray Tracer
 
 Physically-based rendering engine with Monte Carlo sampling.
 
